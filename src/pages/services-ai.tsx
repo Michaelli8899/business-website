@@ -120,8 +120,8 @@ export default function AiPage() {
 
       <RelatedProjects
         projects={getProjectsByCategory("ai")}
-        title="Recent automation work."
-        description="Selected AI and workflow automation projects."
+        title="Related AI work."
+        description="Designing how people interact with AI — clear, context-aware and with people in control."
       />
 
       <Process

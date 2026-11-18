@@ -3,6 +3,7 @@ import { useParams } from "react-router";
 import { Link } from "@/components/ui/link";
 import { engagementLabels, getProject, getRelatedProjects } from "@/data/projects";
 import { Seo } from "@/app/head";
+import { cn } from "@/lib/cn";
 import { assetPath } from "@/config/site";
 import NotFoundPage from "./not-found";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -76,17 +77,27 @@ export default function CaseStudyPage() {
               </div>
               <Reveal delay={120} className="col-span-full lg:col-span-4">
                 <p className="text-lede text-ink-soft">{project.summary}</p>
-                {project.liveUrl && (
-                  <a
-                    href={project.liveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group mt-6 inline-flex items-center gap-1.5 font-medium underline decoration-line-strong underline-offset-[6px] transition-colors hover:text-accent hover:decoration-accent"
-                  >
-                    Visit the live site
-                    <ArrowUpRight aria-hidden="true" className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                    <span className="sr-only">(opens in a new tab)</span>
-                  </a>
+                {(project.liveUrl || project.sourceUrl) && (
+                  <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
+                    {[
+                      project.liveUrl && { href: project.liveUrl, label: "Visit the live site" },
+                      project.sourceUrl && { href: project.sourceUrl, label: "Full case study on michaelmli.com" },
+                    ]
+                      .filter((l): l is { href: string; label: string } => Boolean(l))
+                      .map((l) => (
+                        <a
+                          key={l.href}
+                          href={l.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group inline-flex items-center gap-1.5 font-medium underline decoration-line-strong underline-offset-[6px] transition-colors hover:text-accent hover:decoration-accent"
+                        >
+                          {l.label}
+                          <ArrowUpRight aria-hidden="true" className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                          <span className="sr-only">(opens in a new tab)</span>
+                        </a>
+                      ))}
+                  </div>
                 )}
               </Reveal>
             </div>
@@ -105,12 +116,15 @@ export default function CaseStudyPage() {
 
           {/* 1–2. Overview & type */}
           <dl className="grid grid-cols-2 gap-6 py-12 md:grid-cols-4 md:py-16">
-            {[
-              ["Project type", project.type],
-              ["Category", project.category === "websites" ? "Websites" : "AI & Automation"],
-              ["Engagement", engagementLabels[project.engagement]],
-              ["Scope", project.scope.join(" · ")],
-            ].map(([k, v]) => (
+            {(
+              [
+                ["Engagement", engagementLabels[project.engagement]],
+                project.role ? ["Role", project.role] : ["Project type", project.type],
+                project.team ? ["Team", project.team] : null,
+                project.timeline ? ["Timeline", project.timeline] : null,
+                !project.team && !project.timeline ? ["Scope", project.scope.join(" · ")] : null,
+              ].filter(Boolean) as [string, string][]
+            ).map(([k, v]) => (
               <div key={k} className="border-t border-ink pt-4">
                 <dt className="font-mono text-eyebrow uppercase text-ink-soft">{k}</dt>
                 <dd className="mt-2 font-medium">{v}</dd>
@@ -120,6 +134,9 @@ export default function CaseStudyPage() {
 
           <Block index="01" label="Overview">
             <p className="text-lede text-ink">{cs.overview}</p>
+            {project.note && (
+              <p className="mt-6 rounded-md border border-line bg-surface p-4 text-sm text-ink-soft">{project.note}</p>
+            )}
             {isConcept && (
               <p className="mt-6 rounded-md border border-line bg-surface p-4 text-sm text-ink-soft">
                 This is a self-initiated concept project created to demonstrate the studio&apos;s approach. It does not represent
@@ -160,11 +177,18 @@ export default function CaseStudyPage() {
           <div className="container-site">
             <Eyebrow className="mb-4">05 — Visuals</Eyebrow>
             <h2 id="visuals-title" className="text-2xl font-semibold tracking-[-0.025em] md:text-3xl">
-              {project.category === "ai" ? "Interfaces & workflow" : "Screens"}
+              {project.category === "websites" ? "Screens" : "Design & process"}
             </h2>
-            <div className="mt-10 grid gap-8 md:grid-cols-2">
+            <div className="mt-10 grid items-start gap-8 md:grid-cols-2">
               {cs.gallery.map((g, i) => (
-                <Reveal as="figure" key={i} delay={i * 100}>
+                <Reveal
+                  as="figure"
+                  key={i}
+                  delay={(i % 2) * 100}
+                  // Only large, very wide images (e.g. flows) span both columns; small
+                  // screenshots stay in one column so they aren't upscaled.
+                  className={cn(g.device !== "mobile" && g.image.width >= 1400 && g.image.width / g.image.height > 2 && "md:col-span-2")}
+                >
                   {g.device === "mobile" ? (
                     <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-lg border border-line bg-canvas bg-blueprint py-6">
                       <img
@@ -178,7 +202,17 @@ export default function CaseStudyPage() {
                       />
                     </div>
                   ) : (
-                    <ProjectImage image={g.image} className="aspect-[16/10] rounded-lg border border-line" />
+                    <div className="overflow-hidden rounded-lg border border-line bg-surface">
+                      <img
+                        src={assetPath(g.image.src)}
+                        alt={g.image.alt}
+                        width={g.image.width}
+                        height={g.image.height}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-auto w-full"
+                      />
+                    </div>
                   )}
                   <figcaption className="mt-4 flex gap-3 text-sm text-ink-soft">
                     <span className="font-mono text-accent">Fig. {i + 1}</span>
@@ -233,7 +267,7 @@ export default function CaseStudyPage() {
             </div>
             <p className="mt-10">
               <Link href={serviceLink} className="font-medium underline decoration-line-strong underline-offset-[6px] hover:text-accent hover:decoration-accent">
-                Learn more about {project.category === "websites" ? "Website Solutions" : "AI & Automation"}
+                Learn more about {project.category === "ai" ? "AI & Automation" : "Website Solutions"}
               </Link>
             </p>
           </Block>

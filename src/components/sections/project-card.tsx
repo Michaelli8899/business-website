@@ -52,6 +52,18 @@ export function ProjectCard({
           </Link>
         </H>
         <p className={cn("text-ink-soft", featured ? "mt-2 text-lg" : "max-w-lg")}>{project.summary}</p>
+        {project.liveUrl && (
+          <a
+            href={project.liveUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative z-10 mt-2 inline-flex w-fit items-center gap-1.5 text-sm font-medium text-accent-strong underline decoration-accent/40 underline-offset-4 transition-colors hover:text-ink hover:decoration-ink"
+          >
+            Live site: {new URL(project.liveUrl).hostname.replace(/^www\./, "")}
+            <ArrowUpRight aria-hidden="true" className="size-3.5" />
+            <span className="sr-only">(opens in a new tab)</span>
+          </a>
+        )}
         {featured && (
           <ul className="mt-5 flex flex-wrap gap-2">
             {project.scope.map((s) => (

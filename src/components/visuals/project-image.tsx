@@ -32,6 +32,7 @@ export function ProjectImage({
         loading={priority ? "eager" : "lazy"}
         decoding="async"
         fetchPriority={priority ? "high" : undefined}
+        style={image.focus ? { objectPosition: image.focus } : undefined}
         className={cn("h-full w-full object-cover object-top", imgClassName)}
       />
     </div>
