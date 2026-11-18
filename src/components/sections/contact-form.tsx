@@ -56,6 +56,11 @@ export function ContactForm({
     startedAt.current = Date.now();
   }, []);
 
+  // Move focus to the success or error message once it has rendered.
+  useEffect(() => {
+    if (status.state === "success" || status.state === "error") statusRef.current?.focus();
+  }, [status]);
+
   const read = () => {
     const fd = new FormData(formRef.current!);
     return {
@@ -125,7 +130,6 @@ export function ContactForm({
         setContactMethod("");
         setDescLength(0);
         setTouched(false);
-        requestAnimationFrame(() => statusRef.current?.focus());
         return;
       }
 
@@ -151,7 +155,6 @@ export function ContactForm({
         message: `We couldn't reach the server. Check your connection and try again, or email ${siteConfig.contact.email}.`,
       });
     }
-    requestAnimationFrame(() => statusRef.current?.focus());
   }
 
   if (status.state === "success") {
@@ -163,9 +166,9 @@ export function ContactForm({
         className="rounded-lg border border-accent/40 bg-accent-soft p-8 outline-none md:p-12"
       >
         <CheckCircle2 aria-hidden="true" className="size-8 text-accent" strokeWidth={1.5} />
-        <h2 className="mt-6 text-title font-semibold">Thank you — your message is on its way.</h2>
+        <h2 className="mt-6 text-title font-semibold">Thank you — your message has been sent.</h2>
         <p className="mt-4 max-w-lg text-ink-soft">
-          Your inquiry was delivered successfully. You&apos;ll hear back personally, usually within two business days.
+          Your inquiry has been sent. {siteConfig.founder.name} will reply to you personally by email.
           If anything is urgent, email{" "}
           <a className="text-ink underline underline-offset-4" href={`mailto:${siteConfig.contact.email}`}>
             {siteConfig.contact.email}

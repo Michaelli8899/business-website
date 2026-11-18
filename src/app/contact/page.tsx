@@ -15,7 +15,7 @@ export const metadata = createMetadata({
 });
 
 const nextSteps = [
-  "You'll receive a personal reply, usually within two business days.",
+  `You'll receive a personal reply from ${siteConfig.founder.name}.`,
   "We'll arrange a short discovery call to understand your goals.",
   "You'll receive a written proposal with scope and timeline.",
 ];
@@ -42,12 +42,12 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
               </Reveal>
 
               <Reveal delay={100} className="mt-10 space-y-4 border-t border-line pt-8 text-[0.9375rem]">
-                <a href={`mailto:${email}`} className="flex items-center gap-3 hover:text-accent">
+                <a href={`mailto:${email}`} className="flex items-center gap-3 break-all hover:text-accent">
                   <Mail aria-hidden="true" className="size-4 text-accent" /> {email}
                 </a>
                 {location && (
                   <p className="flex items-center gap-3 text-ink-soft">
-                    <MapPin aria-hidden="true" className="size-4 text-accent" /> {location} · working with clients remotely
+                    <MapPin aria-hidden="true" className="size-4 text-accent" /> {location}
                   </p>
                 )}
                 {bookingUrl && (

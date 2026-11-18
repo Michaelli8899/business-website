@@ -19,14 +19,23 @@ export default function HomePage() {
           "@context": "https://schema.org",
           "@type": "ProfessionalService",
           name: siteConfig.name,
+          alternateName: siteConfig.displayName,
+          slogan: siteConfig.tagline,
           description: siteConfig.description,
           email: siteConfig.contact.email,
-          ...(siteConfig.url ? { url: absoluteUrl("/") } : {}),
-          ...(siteConfig.contact.location
-            ? { areaServed: siteConfig.contact.location, address: { "@type": "PostalAddress", addressLocality: siteConfig.contact.location } }
+          ...(siteConfig.url
+            ? { url: absoluteUrl("/"), logo: absoluteUrl("/brand/frame-and-flow-wordmark.svg"), image: absoluteUrl("/og.png") }
             : {}),
-          founder: { "@type": "Person", name: siteConfig.founder.name },
-          knowsAbout: ["Website design", "Web development", "Workflow automation", "AI integration"],
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: siteConfig.contact.address.locality,
+            addressRegion: siteConfig.contact.address.region,
+            addressCountry: siteConfig.contact.address.country,
+          },
+          areaServed: "United States",
+          founder: { "@type": "Person", name: siteConfig.founder.name, jobTitle: siteConfig.founder.role },
+          ...(siteConfig.social.length > 0 ? { sameAs: siteConfig.social.map((s) => s.href) } : {}),
+          knowsAbout: ["Website design", "Web development", "Website deployment", "Workflow automation", "AI integration"],
         }}
       />
       <Hero />

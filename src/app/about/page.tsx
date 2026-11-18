@@ -9,25 +9,19 @@ import { Reveal } from "@/components/ui/reveal";
 
 export const metadata = createMetadata({
   title: "About",
-  description: `${siteConfig.name} is an independent, founder-led digital studio combining thoughtful design with practical technology.`,
+  description: `Meet ${siteConfig.founder.name}, founder of ${siteConfig.name} — an independent, founder-led studio for website design and practical AI-powered business automation.`,
   path: "/about",
 });
 
 export default function AboutPage() {
   const { founder } = siteConfig;
-  const initials = founder.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2);
-
   return (
     <>
       <PageHero
         eyebrow="About the studio"
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "About" }]}
         title="Good design. Useful technology."
-        description={`${siteConfig.name} is an independent, founder-led digital studio helping small and medium-sized businesses build better websites and smarter ways of working.`}
+        description={`${siteConfig.name} is an independent, founder-led digital solutions studio in ${siteConfig.contact.address.locality}, helping small businesses build a stronger digital presence and simplify the way they work.`}
       />
 
       {/* Studio introduction */}
@@ -56,41 +50,55 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Founder */}
+      {/* Founder — text-based introduction */}
       <section aria-labelledby="founder-title" className="section-y border-t border-line bg-surface">
         <div className="container-site grid-site gap-y-12">
-          <Reveal className="col-span-full md:col-span-4 lg:col-span-4">
-            {/* Replace with a real portrait: <Image src="/founder.jpg" ... /> */}
-            <div
-              role="img"
-              aria-label={`Portrait placeholder for ${founder.name}`}
-              className="relative grid aspect-[4/5] place-items-center overflow-hidden rounded-lg bg-accent-soft bg-blueprint"
-            >
-              <span className="text-[clamp(4rem,10vw,7rem)] font-semibold tracking-[-0.05em] text-accent">{initials}</span>
-              <span className="absolute bottom-4 left-4 font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-accent-strong">
-                Portrait placeholder
-              </span>
-            </div>
-          </Reveal>
-          <Reveal delay={80} className="col-span-full md:col-span-4 lg:col-span-7 lg:col-start-6">
+          <Reveal className="col-span-full lg:col-span-4">
             <Eyebrow className="mb-6">Founder</Eyebrow>
-            <h2 id="founder-title" className="text-title font-semibold">
+            <h2 id="founder-title" className="text-headline font-semibold">
               {founder.name}
             </h2>
-            <p className="mt-2 text-ink-soft">{founder.role}</p>
-            <div className="mt-8 space-y-5 text-lg leading-relaxed text-ink-soft">
-              {founder.bio.map((p) => (
+            <p className="mt-4 text-lg text-ink-soft">{founder.role}</p>
+
+            <dl className="mt-10 space-y-5 border-t border-line pt-8 text-[0.9375rem]">
+              {siteConfig.contact.location && (
+                <div>
+                  <dt className="font-mono text-eyebrow uppercase text-ink-soft">Based in</dt>
+                  <dd className="mt-1.5 text-ink">{siteConfig.contact.location}</dd>
+                </div>
+              )}
+              <div>
+                <dt className="font-mono text-eyebrow uppercase text-ink-soft">Background</dt>
+                <dd className="mt-1.5">
+                  <ul className="space-y-1 text-ink">
+                    {founder.background.map((b) => (
+                      <li key={b}>{b}</li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+              <div>
+                <dt className="font-mono text-eyebrow uppercase text-ink-soft">Get in touch</dt>
+                <dd className="mt-1.5">
+                  <a
+                    href={`mailto:${siteConfig.contact.email}`}
+                    className="break-all text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+                  >
+                    {siteConfig.contact.email}
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </Reveal>
+
+          <Reveal delay={80} className="col-span-full lg:col-span-7 lg:col-start-6">
+            <p className="text-title font-medium leading-[1.2] text-ink">{founder.bio[0]}</p>
+            <div className="mt-10 space-y-6 border-l-2 border-accent pl-6 text-lg leading-relaxed text-ink-soft md:pl-8">
+              {founder.bio.slice(1).map((p) => (
                 <p key={p.slice(0, 32)}>{p}</p>
               ))}
             </div>
-            <h3 className="mt-10 font-mono text-eyebrow uppercase text-ink-soft">Background</h3>
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {founder.background.map((b) => (
-                <li key={b} className="rounded-full border border-line-strong px-3 py-1.5 text-sm">
-                  {b}
-                </li>
-              ))}
-            </ul>
+            <p className="mt-10 font-mono text-eyebrow uppercase text-ink-soft">— {founder.name}</p>
           </Reveal>
         </div>
       </section>

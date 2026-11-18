@@ -2,25 +2,30 @@ import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { siteConfig } from "@/config/site";
+import { ogImages } from "@/lib/metadata";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { RevealObserver } from "@/components/ui/reveal-observer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: siteConfig.url ? new URL(siteConfig.url) : undefined,
+  metadataBase: siteConfig.metadataBase ? new URL(siteConfig.metadataBase) : undefined,
   title: {
-    default: `${siteConfig.name} — ${siteConfig.tagline}`,
-    template: `%s — ${siteConfig.name}`,
+    default: siteConfig.seo.title,
+    template: `%s | ${siteConfig.name}`,
   },
-  description: siteConfig.description,
+  description: siteConfig.seo.description,
   applicationName: siteConfig.name,
   authors: [{ name: siteConfig.founder.name }],
+  creator: siteConfig.founder.name,
   openGraph: {
     siteName: siteConfig.name,
     type: "website",
     locale: "en_US",
+    images: ogImages(),
   },
+  // Keep preview deployments out of search results.
+  robots: siteConfig.isPreviewDeployment ? { index: false, follow: false } : undefined,
   formatDetection: { telephone: false, email: false, address: false },
 };
 

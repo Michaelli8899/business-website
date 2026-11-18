@@ -22,8 +22,8 @@ export function AboutPreview() {
             businesses adopt technology without unnecessary complexity.
           </p>
           <p className="text-base">
-            {siteConfig.name} is founder-led: you work directly with the person designing and building your
-            solution, from first conversation to launch and beyond.
+            {siteConfig.name} is founder-led. You work directly with {siteConfig.founder.name}, the person designing
+            and building your solution, from the first conversation to launch and beyond.
           </p>
           <div className="pt-2 text-base">
             <TextLink href="/about">Get to know the studio</TextLink>

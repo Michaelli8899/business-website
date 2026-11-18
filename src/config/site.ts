@@ -2,9 +2,8 @@
  * Central site configuration.
  *
  * Everything that identifies the studio — name, founder, contact details,
- * social links, booking URL — lives here so branding can be finalised
- * without touching components. Values marked "placeholder" should be
- * replaced before launch.
+ * social links, booking URL — lives here so the identity stays consistent
+ * across navigation, pages, metadata, structured data and emails.
  */
 
 export type SocialLink = {
@@ -12,72 +11,181 @@ export type SocialLink = {
   href: string;
 };
 
+/* ------------------------------------------------------------------ */
+/* Site URL resolution                                                 */
+/* ------------------------------------------------------------------ */
+
+function cleanUrl(value: string | undefined): string {
+  if (!value) return "";
+  try {
+    const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+    if (!/^https?:$/.test(url.protocol)) return "";
+    if (!url.hostname.includes(".") && url.hostname !== "localhost") return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * The public production URL, used for canonical URLs, the sitemap,
+ * robots.txt and absolute Open Graph URLs.
+ *
+ * Resolution order:
+ *  1. NEXT_PUBLIC_SITE_URL, when explicitly configured.
+ *  2. A production URL supplied by the hosting platform
+ *     (Vercel production deployments, Netlify production context).
+ *  3. Otherwise empty — no canonical URLs or sitemap entries are emitted,
+ *     so preview and local builds never advertise a fake production URL.
+ *
+ * No custom domain has been chosen yet; do not hardcode one here.
+ */
+function resolveSiteUrl(): string {
+  const explicit = cleanUrl(process.env.NEXT_PUBLIC_SITE_URL);
+  if (explicit) return explicit;
+  if (process.env.VERCEL_ENV === "production") {
+    const vercel = cleanUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL);
+    if (vercel) return vercel;
+  }
+  if (process.env.NETLIFY === "true" && process.env.CONTEXT === "production") {
+    const netlify = cleanUrl(process.env.URL);
+    if (netlify) return netlify;
+  }
+  return "";
+}
+
+/**
+ * Base URL for resolving relative metadata (e.g. Open Graph images) when no
+ * production URL is known: the deployment's own URL on preview builds, or
+ * localhost during `next dev`. Empty otherwise. Never used for canonical URLs.
+ */
+function resolveMetadataBase(siteUrl: string): string {
+  if (siteUrl) return siteUrl;
+  const deployment = cleanUrl(process.env.VERCEL_URL) || cleanUrl(process.env.DEPLOY_PRIME_URL);
+  if (deployment) return deployment;
+  if (process.env.NODE_ENV === "development") return `http://localhost:${process.env.PORT || 3000}`;
+  // Unknown production host: emit no absolute metadata URLs rather than a fake one.
+  return "";
+}
+
+/* ------------------------------------------------------------------ */
+/* Social links                                                        */
+/* ------------------------------------------------------------------ */
+
+const socialSources: { label: string; env: string | undefined; hosts: string[] }[] = [
+  { label: "LinkedIn", env: process.env.NEXT_PUBLIC_LINKEDIN_URL, hosts: ["linkedin.com"] },
+  { label: "Instagram", env: process.env.NEXT_PUBLIC_INSTAGRAM_URL, hosts: ["instagram.com"] },
+  { label: "GitHub", env: process.env.NEXT_PUBLIC_GITHUB_URL, hosts: ["github.com"] },
+];
+
+/**
+ * A social link is only published when it is a valid https URL on the
+ * expected domain and points at a specific profile (not the bare homepage).
+ * Unset or invalid values are hidden automatically.
+ */
+function validSocialLinks(): SocialLink[] {
+  return socialSources.flatMap(({ label, env, hosts }) => {
+    if (!env) return [];
+    try {
+      const url = new URL(env.trim());
+      const host = url.hostname.replace(/^www\./, "");
+      const hasProfilePath = url.pathname.replace(/\/+$/, "").length > 1;
+      if (url.protocol !== "https:" || !hosts.includes(host) || !hasProfilePath) return [];
+      return [{ label, href: url.toString() }];
+    } catch {
+      return [];
+    }
+  });
+}
+
+/* ------------------------------------------------------------------ */
+
+const siteUrl = resolveSiteUrl();
+
 export const siteConfig = {
-  /** Placeholder studio name — replace when branding is finalised. */
-  name: process.env.NEXT_PUBLIC_STUDIO_NAME || "Studio Name",
-  /** Short form used in the wordmark and tight spaces. */
-  shortName: process.env.NEXT_PUBLIC_STUDIO_SHORT_NAME || "Studio",
+  /** Full legal-style trading name used in metadata, policy and emails. */
+  name: "Frame & Flow Studio",
+  /** Short display name for tight spaces. */
+  displayName: "Frame & Flow",
+  /** Lowercase wordmark text (rendered as an SVG logo). */
+  wordmark: "frame&flow.",
   tagline: "Better websites. Smarter businesses.",
   description:
-    "An independent digital studio designing thoughtful websites and practical AI automation for small and medium-sized businesses.",
+    "Frame & Flow Studio is an independent digital solutions studio specializing in website design, development, deployment, and practical AI-powered business automation.",
   /** Positioning line used in the footer. */
   positioning:
-    "An independent studio for website design, development and practical business automation.",
+    "An independent digital solutions studio for website design, development and practical AI-powered business automation.",
 
-  /**
-   * Production URL, e.g. https://example.com. Used for canonical URLs,
-   * the sitemap and Open Graph metadata. Leave unset during development.
-   */
-  url:
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : ""),
+  seo: {
+    title: "Frame & Flow Studio | Websites & Business Automation",
+    description:
+      "Thoughtful website design, development, and practical AI automation for small businesses. Built to help you grow, simplify operations, and stay in control.",
+  },
+
+  /** Production URL — empty until one is configured (see resolveSiteUrl). */
+  url: siteUrl,
+  /** Base for resolving relative metadata URLs. Never used for canonicals. */
+  metadataBase: resolveMetadataBase(siteUrl),
+  /** True only on Vercel/Netlify preview deployments. */
+  isPreviewDeployment:
+    process.env.VERCEL_ENV === "preview" ||
+    (process.env.NETLIFY === "true" && !!process.env.CONTEXT && process.env.CONTEXT !== "production"),
 
   founder: {
-    name: process.env.NEXT_PUBLIC_FOUNDER_NAME || "Founder Name",
-    role: "Founder, Designer & Developer",
-    /**
-     * Founder biography, one paragraph per entry. Edit freely — keep it
-     * honest and avoid referencing confidential employer work.
-     */
+    name: "Michael Li",
+    role: "Founder & Digital Solutions Designer",
+    /** Founder biography, one paragraph per entry. */
     bio: [
-      "I started the studio to give small and medium-sized businesses direct access to the kind of design and technical thinking usually reserved for larger organisations — without the overhead, hand-offs or jargon.",
-      "My background spans human-computer interaction, information systems, product design and product management. More recently I have focused on AI workflow design and integration: figuring out where automation genuinely helps, and building it so people can trust and maintain it.",
-      "When you work with the studio, you work with me directly — from the first conversation through design, build, launch and support.",
+      "I'm a designer and product professional with a background in human-computer interaction, information systems, and AI product development.",
+      "I founded Frame & Flow Studio to help small businesses build a stronger digital presence and simplify the way they work.",
+      "My approach combines thoughtful design with practical technology. Whether it's creating a website or implementing an automated workflow, I focus on solutions that are intuitive, reliable, and built around real business needs.",
+      "I believe businesses should have control over the technology they use. That's why every project is designed with long-term usability, clear documentation, and flexible maintenance options in mind.",
     ],
-    background: [
-      "Human-computer interaction",
-      "Information systems",
-      "Product design",
-      "Product management",
-      "AI workflow design & integration",
-    ],
+    /** Areas named in the biography. Keep this list factual. */
+    background: ["Human-computer interaction", "Information systems", "AI product development"],
   },
 
   contact: {
-    /** Placeholder business email. */
-    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@example.com",
+    /** Public business email — used for mailto links and inquiry notifications. */
+    email: "michaelmlidesign@gmail.com",
     /** Set to an empty string to hide the location. */
-    location: "Dallas, Texas",
+    location: "Dallas, Texas, United States",
+    address: {
+      locality: "Dallas",
+      region: "TX",
+      country: "US",
+    },
     /**
      * Optional scheduling link (Cal.com, Calendly, etc.). When set, a
      * "Book a discovery call" option appears on the contact page.
      */
-    bookingUrl: process.env.NEXT_PUBLIC_BOOKING_URL || "",
+    bookingUrl: cleanUrl(process.env.NEXT_PUBLIC_BOOKING_URL) ? process.env.NEXT_PUBLIC_BOOKING_URL!.trim() : "",
   },
 
-  /** Social links. Remove entries or leave the array empty to hide them. */
-  social: [
-    { label: "LinkedIn", href: "https://www.linkedin.com/" },
-    { label: "GitHub", href: "https://github.com/" },
-  ] satisfies SocialLink[],
+  /**
+   * Verified social profiles only. Configure with NEXT_PUBLIC_LINKEDIN_URL,
+   * NEXT_PUBLIC_INSTAGRAM_URL and NEXT_PUBLIC_GITHUB_URL — links appear
+   * automatically once a valid profile URL is provided.
+   */
+  social: validSocialLinks(),
 
-  /** Year the studio was founded — shown nowhere by default. */
-  foundedYear: 2026,
+  privacy: {
+    /**
+     * Shown on the privacy page. Set to the actual publication date at
+     * launch, and update whenever the policy changes.
+     */
+    lastUpdated: process.env.NEXT_PUBLIC_PRIVACY_LAST_UPDATED || "",
+    /**
+     * Flip to true once the owner (and ideally a legal professional) has
+     * reviewed the policy. Until then, the page shows a review notice.
+     */
+    reviewed: process.env.NEXT_PUBLIC_PRIVACY_REVIEWED === "true",
+  },
 } as const;
 
 export type SiteConfig = typeof siteConfig;
 
-/** Absolute URL helper. Returns a relative path when no site URL is set. */
+/** Absolute URL helper. Returns the relative path when no site URL is set. */
 export function absoluteUrl(path = "/"): string {
   if (!siteConfig.url) return path;
   return new URL(path, siteConfig.url).toString();

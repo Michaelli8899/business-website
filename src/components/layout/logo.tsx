@@ -1,36 +1,62 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+import { monogramGlyphs, wordmarkGlyphs, type BrandGlyphs } from "./brand-glyphs";
 import { cn } from "@/lib/cn";
 
 /**
- * Placeholder wordmark. Replace the mark below with an SVG logo when
- * branding is finalised — the name comes from src/config/site.ts.
+ * Frame & Flow brand marks, rendered from outlined Geist SemiBold paths
+ * (see scripts/generate-brand.cjs). Colours follow the surrounding tone:
+ * charcoal + sage on light backgrounds, ivory + light sage on dark.
  */
-export function LogoMark({ className }: { className?: string }) {
+function Glyphs({ glyphs, className, title }: { glyphs: BrandGlyphs; className?: string; title?: string }) {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" className={cn("size-7", className)}>
-      <rect x="1" y="1" width="30" height="30" rx="4" fill="currentColor" />
-      <path d="M9 22V10h7" stroke="var(--color-canvas)" strokeWidth="2.25" fill="none" />
-      <circle cx="21.5" cy="19.5" r="3.25" fill="var(--color-accent-on-dark)" />
+    <svg
+      viewBox={`0 0 ${glyphs.width} ${glyphs.height}`}
+      className={className}
+      role={title ? "img" : undefined}
+      aria-hidden={title ? undefined : true}
+      aria-label={title}
+    >
+      {glyphs.parts.map((p, i) => (
+        <path key={i} d={p.d} fill={p.role === "ink" ? "var(--logo-ink)" : "var(--logo-accent)"} />
+      ))}
     </svg>
   );
 }
 
+const tones = {
+  default: "[--logo-ink:var(--color-ink)] [--logo-accent:var(--color-accent)]",
+  inverse: "[--logo-ink:var(--color-on-night)] [--logo-accent:var(--color-accent-on-dark)]",
+};
+
+export function Wordmark({
+  className,
+  tone = "default",
+  title,
+}: {
+  className?: string;
+  tone?: "default" | "inverse";
+  title?: string;
+}) {
+  return <Glyphs glyphs={wordmarkGlyphs} className={cn("h-6 w-auto", tones[tone], className)} title={title} />;
+}
+
+export function Monogram({ className, tone = "default" }: { className?: string; tone?: "default" | "inverse" }) {
+  return <Glyphs glyphs={monogramGlyphs} className={cn("h-6 w-auto", tones[tone], className)} />;
+}
+
+/** Linked wordmark used in the navigation and footer. */
 export function Logo({ className, tone = "default" }: { className?: string; tone?: "default" | "inverse" }) {
   return (
     <Link
       href="/"
-      className={cn(
-        "group inline-flex items-center gap-2.5 rounded-sm",
-        tone === "default" ? "text-ink" : "text-on-night",
-        className,
-      )}
+      aria-label={`${siteConfig.name} — home`}
+      className={cn("group inline-flex items-center rounded-sm py-1", className)}
     >
-      <LogoMark className={tone === "inverse" ? "text-night-soft [&_rect]:fill-on-night" : undefined} />
-      <span className="text-[1.0625rem] font-semibold tracking-[-0.02em]">
-        {siteConfig.name}
-      </span>
-      <span className="sr-only">— home</span>
+      <Wordmark
+        tone={tone}
+        className="h-[1.375rem] transition-opacity duration-200 group-hover:opacity-80 md:h-6"
+      />
     </Link>
   );
 }

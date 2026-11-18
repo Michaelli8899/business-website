@@ -17,7 +17,7 @@ export function Footer() {
             <p className="mt-6 max-w-sm text-on-night-soft">{siteConfig.positioning}</p>
             <a
               href={`mailto:${email}`}
-              className="group mt-8 inline-flex items-center gap-2 text-xl font-medium tracking-[-0.01em] text-on-night underline decoration-night-line underline-offset-[6px] transition-colors hover:text-accent-on-dark hover:decoration-accent-on-dark md:text-2xl"
+              className="group mt-8 inline-flex max-w-full items-center gap-2 break-all text-lg sm:text-xl font-medium tracking-[-0.01em] text-on-night underline decoration-night-line underline-offset-[6px] transition-colors hover:text-accent-on-dark hover:decoration-accent-on-dark lg:text-2xl"
             >
               {email}
               <ArrowUpRight

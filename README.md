@@ -1,6 +1,8 @@
-# Independent Digital Studio — Website
+# Frame & Flow Studio — Website
 
-Marketing website for an independent, founder-led digital studio offering **Website Design & Development** and **AI & Business Automation**.
+**frame&flow.** — *Better websites. Smarter businesses.*
+
+Marketing website for **Frame & Flow Studio**, an independent digital solutions studio in Dallas, Texas, founded by Michael Li. It covers two services: **Website Design & Development** and **AI & Business Automation**.
 
 Built with **Next.js 16 (App Router)**, **TypeScript**, **Tailwind CSS 4**, **Lucide** icons and the **Geist** typeface (self-hosted through the `geist` package, so no external font requests).
 
@@ -40,7 +42,7 @@ npm run dev                  # http://localhost:3000
 | `/contact`           | Project inquiry form. `?service=new-website` pre-selects a service |
 | `/privacy`           | Privacy policy (template)                               |
 | `/api/contact`       | Contact form endpoint (POST)                            |
-| `/sitemap.xml`, `/robots.txt`, `/opengraph-image` | Generated SEO assets       |
+| `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`, `/og.png` | Generated SEO assets (`og.png` is referenced in metadata only when an absolute URL is known) |
 
 ---
 
@@ -60,9 +62,14 @@ src/
   data/                All page content: services, projects, process, FAQs,
                        maintenance options, about-page principles, navigation
   lib/
-    contact/           Shared validation schema and delivery integrations
-    rate-limit.ts      In-memory rate limiter for the contact endpoint
+    contact/           Shared validation schema and Resend delivery
+    rate-limit.ts      Rate limiter (Upstash Redis when configured, in-memory fallback)
+    log.ts             Structured server logging
     metadata.ts        Per-page metadata helper
+  instrumentation.ts   Server error hook (onRequestError)
+public/brand/          Wordmark (light/dark), monogram, PNG app icons
+scripts/
+  generate-brand.cjs   Regenerates every logo and icon asset from Geist SemiBold
 ```
 
 Design tokens (colours, type scale, radii, shadows, container widths, motion) are defined in the `@theme` block at the top of `src/app/globals.css` and are available as Tailwind utilities, for example `bg-canvas`, `text-ink-soft`, `text-headline` and `ease-out-soft`.
@@ -71,61 +78,93 @@ Design tokens (colours, type scale, radii, shadows, container widths, motion) ar
 
 ## Environment variables
 
-See `.env.example`. Nothing is required to run the site locally.
+See `.env.example`. Nothing is required to run the site locally. Studio identity (name, founder, public email, location) lives in `src/config/site.ts` rather than in environment variables.
 
 | Variable | Scope | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | public | Production URL. Enables canonical URLs, sitemap entries and absolute Open Graph URLs. On Vercel this falls back to the project's production domain. |
-| `NEXT_PUBLIC_STUDIO_NAME` / `_SHORT_NAME` | public | Studio name (defaults to "Studio Name") |
-| `NEXT_PUBLIC_FOUNDER_NAME` | public | Founder name on the About page |
-| `NEXT_PUBLIC_CONTACT_EMAIL` | public | Business email shown site-wide |
+| `NEXT_PUBLIC_SITE_URL` | public | Production URL. **Not set yet; no domain has been chosen.** See *Domain configuration*. |
+| `NEXT_PUBLIC_LINKEDIN_URL`, `NEXT_PUBLIC_INSTAGRAM_URL`, `NEXT_PUBLIC_GITHUB_URL` | public | Social profiles. Each is hidden unless it is a valid https profile URL on the matching domain. |
 | `NEXT_PUBLIC_BOOKING_URL` | public | Optional scheduling link on the contact page |
-| `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | **server** | Email delivery through Resend |
-| `CONTACT_WEBHOOK_URL`, `CONTACT_WEBHOOK_SECRET` | **server** | Webhook delivery |
+| `NEXT_PUBLIC_PRIVACY_LAST_UPDATED` | public | Publication date shown on `/privacy` |
+| `NEXT_PUBLIC_PRIVACY_REVIEWED` | public | `true` hides the "pending review" notice on `/privacy` |
+| `RESEND_API_KEY` | **server** | Resend API key |
+| `CONTACT_TO_EMAIL` | **server** | Inquiry recipient(s). Defaults to `michaelmlidesign@gmail.com`. |
+| `CONTACT_FROM_EMAIL` | **server** | Verified Resend sender. Required in production. |
+| `CONTACT_ALLOW_TEST_SENDER` | **server** | `true` allows Resend's test sender outside `next dev` (testing only) |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | **server** | Shared rate limiter (recommended for serverless) |
 
-`NEXT_PUBLIC_*` values are built into the page at build time, so **rebuild after changing them**. Never put API keys in `NEXT_PUBLIC_*` variables.
+`NEXT_PUBLIC_*` values are built into the page at build time, so **rebuild after changing them**. Never put API keys in `NEXT_PUBLIC_*` variables. Server-only values are read only in `src/lib/` and the API route, and never reach the browser.
 
 ---
 
-## Contact form delivery
+## Contact form delivery (Resend)
 
-The form validates input in the browser and again on the server, using the same rules in `src/lib/contact/schema.ts`. The server (`src/app/api/contact/route.ts`) also:
+Inquiries are emailed to the studio through [Resend](https://resend.com). The flow is:
 
-- rejects cross-origin requests and oversized bodies
-- uses a hidden honeypot field and a minimum fill time to block spam
-- rate-limits each IP to 5 submissions per 10 minutes
-- **never fakes success**. If no delivery channel is configured, it returns `503 not_configured`. The contact page shows a notice before anyone fills in the form, and after a submission it offers a pre-filled `mailto:` fallback.
+1. The browser validates input using the shared rules in `src/lib/contact/schema.ts`.
+2. `POST /api/contact` (`src/app/api/contact/route.ts`) runs these checks in order:
+   - same-origin
+   - JSON content type
+   - body size limit (16 KB)
+   - rate limit (5 per 10 minutes per hashed IP)
+   - honeypot field and plausible fill time
+   - server-side validation with per-field length limits
+3. `src/lib/contact/deliver.ts` sends the email. It includes the visitor's name, email, company, service interests, project description, timeline, website, preferred contact method and the submission timestamp. All user content is HTML-escaped, and the subject line is stripped of control characters.
+4. **Reply-To** is the visitor's address. **From** is always the configured sender, never the visitor's unverified address.
+5. Success is shown **only** when Resend returns a 2xx response:
+   - If Resend rejects the request or times out, the visitor sees an error and a pre-filled `mailto:` fallback.
+   - If delivery isn't configured, the API returns `503 not_configured`, and the contact page says so before anyone fills in the form.
 
-### Option 1: Email (Resend)
+### Setup
 
-1. Create a [Resend](https://resend.com) account and verify your sending domain.
-2. Set:
-   ```
-   RESEND_API_KEY=re_...
-   CONTACT_TO_EMAIL=you@yourdomain.com
-   CONTACT_FROM_EMAIL="Studio Website <inquiries@yourdomain.com>"
-   ```
-   Each inquiry arrives as a formatted email, with `reply-to` set to the visitor's address.
+1. Create a Resend account and an API key. Set `RESEND_API_KEY` in the hosting provider (server-side only).
+2. `CONTACT_TO_EMAIL=michaelmlidesign@gmail.com` (this is also the default).
+3. **Development testing:** leave `CONTACT_FROM_EMAIL` empty and run `npm run dev`. Resend's test sender `onboarding@resend.dev` is used. Resend only delivers test-sender mail to the address that **owns the Resend account**, so this works only if that account is registered with the recipient address. To test a production build locally, set `CONTACT_ALLOW_TEST_SENDER=true`.
+4. **Before public launch:** verify a sender domain in Resend (DNS records). Then set, for example, `CONTACT_FROM_EMAIL="Frame & Flow Studio <inquiries@your-domain.com>"`. Production builds report "not configured" until a sender is set, and refuse to fall back to the test sender.
+5. Send a real test inquiry and confirm it arrives. Check the server logs for `contact.delivered` or `contact.delivery_failed` events.
 
-### Option 2: Webhook (Zapier, Make, n8n, CRM, Slack…)
+---
 
-Set `CONTACT_WEBHOOK_URL` (and optionally `CONTACT_WEBHOOK_SECRET`, sent as `X-Webhook-Secret`). Each submission is POSTed as JSON:
+## Domain configuration
 
-```json
-{
-  "type": "project_inquiry",
-  "submittedAt": "2026-01-01T12:00:00.000Z",
-  "source": "https://yourdomain.com",
-  "name": "…", "email": "…", "company": "…",
-  "services": ["new-website"], "serviceLabels": ["New website"],
-  "description": "…", "website": "https://…",
-  "timeline": "", "contactMethod": "", "phone": ""
-}
-```
+**No custom domain has been selected.** Nothing in the code assumes one. The production URL is resolved in `src/config/site.ts` in this order:
 
-If both channels are configured, both are used. The submission succeeds when at least one delivers, and failures are logged on the server.
+1. `NEXT_PUBLIC_SITE_URL`, when explicitly set.
+2. A production URL supplied by the host: `VERCEL_PROJECT_PRODUCTION_URL` on Vercel *production* deployments, or `URL` in Netlify's production context.
+3. Otherwise **none**. Canonical tags, sitemap entries, the robots `Sitemap:` line and absolute Open Graph URLs are omitted, rather than pointing at a guessed domain.
 
-> **Rate limiting note:** the limiter keeps its state in memory. On serverless hosting, each instance has its own memory, so treat it as a first line of defence. For stricter protection, add your host's firewall or bot protection, or swap in a shared store such as Upstash Redis in `src/lib/rate-limit.ts`.
+Relative metadata such as the OG image resolves against the deployment URL on previews, or `http://localhost:<PORT>` locally. That base is never used for canonical URLs. Preview deployments (Vercel/Netlify) are marked `noindex` and disallowed in robots.txt.
+
+**Current status:** unresolved. Until a domain is chosen, the site has no canonical URLs or sitemap entries, unless it is deployed to a Vercel production environment, where the platform-provided domain is used.
+
+**When a domain is selected:**
+
+- [ ] Set `NEXT_PUBLIC_SITE_URL=https://your-domain` and redeploy. Canonical URLs, the sitemap, robots.txt and OG URLs all update automatically.
+- [ ] Check `/sitemap.xml`, `/robots.txt` and a page's `<link rel="canonical">`.
+- [ ] Verify the domain in Resend and update `CONTACT_FROM_EMAIL` to an address on it.
+- [ ] Update the privacy policy if hosting or providers changed.
+
+---
+
+## Security
+
+| Area | Implementation |
+| --- | --- |
+| Input validation | Shared schema, enforced on the server. Allow-listed option values and length limits on every field. |
+| Body size | `Content-Length` checked before reading, and the actual byte length checked after (16 KB max) |
+| Spam | Hidden honeypot field, plus a minimum (3 s) and maximum (24 h) form fill time |
+| Rate limiting | 5 submissions per 10 minutes per client. IPs are SHA-256 hashed before use. |
+| Origin | Cross-origin POSTs rejected; JSON content type required |
+| Output | User content HTML-escaped in the notification email; subject line stripped of control characters |
+| Secrets | Read only server-side (`server-only` modules); never `NEXT_PUBLIC_`; `.env*` files are git-ignored |
+| Error monitoring | Structured JSON logs (`src/lib/log.ts`) for delivery, spam and rate-limit events, plus `onRequestError` in `src/instrumentation.ts` for every uncaught server error. No personal data is logged. |
+
+**Rate limiting on serverless.** The in-memory fallback is per instance, so on Vercel/Netlify it is not a reliable limit by itself. Use one or both of:
+
+- **Upstash Redis (built in):** create a free Redis database at upstash.com and set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. The limiter then uses a shared fixed window and needs no extra dependency.
+- **Platform protection:** for example, a Vercel Firewall rate-limit rule on `POST /api/contact`, or the equivalent at your CDN/WAF.
+
+**Error monitoring.** Logs are visible in the hosting provider's log viewer; alert on `"level":"error"`. To use Sentry or similar, forward errors from `logError()` in `src/lib/log.ts` and from `onRequestError` in `src/instrumentation.ts`.
 
 ---
 
@@ -133,18 +172,17 @@ If both channels are configured, both are used. The submission succeeds when at 
 
 The site is a standard Next.js app. Every page is static except `/contact`, which reads the `?service=` query, and `/api/contact`.
 
-**Vercel (recommended):** import the repository, add the environment variables above, and deploy. The production domain is picked up automatically for canonical URLs.
+- **Vercel:** import the repository, add the environment variables, and deploy.
+- **Other Node hosts:** run `npm ci && npm run build && npm start` (set `PORT` as needed).
 
-**Other Node hosts:** `npm ci && npm run build && npm start` (set `PORT` as needed). Any platform that supports Next.js route handlers works.
+### Launch checklist
 
-Before launch:
-
-- [ ] Set the studio name, founder, email and social links (`src/config/site.ts` or environment variables)
-- [ ] Set `NEXT_PUBLIC_SITE_URL` (unless the Vercel fallback applies)
-- [ ] Configure contact delivery and send a test inquiry
-- [ ] Review the privacy policy (`src/app/privacy/page.tsx`) with a professional
-- [ ] Replace the founder portrait placeholder (`src/app/about/page.tsx`)
-- [ ] Replace the placeholder logo mark (`src/components/layout/logo.tsx`, `src/app/icon.svg`)
+- [ ] Configure Resend: `RESEND_API_KEY`, a verified sender domain, `CONTACT_FROM_EMAIL`. Then send a test inquiry and confirm it arrives.
+- [ ] Choose a domain and set `NEXT_PUBLIC_SITE_URL` (see *Domain configuration*)
+- [ ] Configure shared rate limiting (Upstash) and/or a platform firewall rule
+- [ ] **Owner/legal review of the privacy policy**, then set `NEXT_PUBLIC_PRIVACY_LAST_UPDATED` to the publication date and `NEXT_PUBLIC_PRIVACY_REVIEWED=true`
+- [ ] Add verified social profile URLs, if any
+- [ ] If analytics, cookies or new third-party services are added, update `/privacy` first
 
 ---
 
@@ -154,7 +192,8 @@ All copy lives in plain TypeScript files, so no CMS is needed.
 
 | To change… | Edit |
 | --- | --- |
-| Studio name, founder bio, email, location, socials, booking link | `src/config/site.ts` |
+| Studio name, wordmark text, founder bio, email, location, SEO title/description | `src/config/site.ts` |
+| Social links, booking link, privacy date | Environment variables (see above) |
 | Service cards, capability lists, AI principles | `src/data/services.ts` |
 | Process steps (homepage, websites, AI) | `src/data/process.ts` |
 | Managed vs self-managed options | `src/data/maintenance.ts` |
@@ -173,10 +212,15 @@ Add an entry to the `projects` array in `src/data/projects.ts`. Its page at `/wo
 
 ### Updating branding
 
-- **Name:** set `NEXT_PUBLIC_STUDIO_NAME` or edit `src/config/site.ts`
-- **Logo:** replace `LogoMark` in `src/components/layout/logo.tsx` and `src/app/icon.svg`
+- **Identity:** `src/config/site.ts`. The name, display name, founder, email, location and SEO copy are all defined here and flow through to the navigation, pages, metadata, structured data and email notifications.
+- **Logo and icons:** the wordmark **frame&flow.** and the monogram **f&f.** are Geist SemiBold outlined to SVG paths, in charcoal `#20231F`, ivory `#F7F7F2` and sage `#526B50` / `#B4C9AE`. To regenerate every asset after a design change:
+  ```bash
+  npm i --no-save opentype.js@1.3.4
+  node scripts/generate-brand.cjs
+  ```
+  This writes `src/components/layout/brand-glyphs.ts` (used by `<Logo>`), the files in `public/brand/` (wordmark, light, dark and monogram SVGs, plus 192 px and 512 px PNGs), `src/app/icon.svg`, `src/app/favicon.ico` and `src/app/apple-icon.png`. PNG/ICO output needs Playwright with Chromium; pass `--svg-only` to skip it.
 - **Colours and type:** edit the tokens in `src/app/globals.css` (`@theme`). Keep secondary text at 4.5:1 contrast or better against the background.
-- **Social image:** `src/app/opengraph-image.tsx`
+- **Social image:** `src/app/og.png/route.tsx`
 
 ---
 

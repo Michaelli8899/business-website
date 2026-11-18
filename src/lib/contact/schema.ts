@@ -61,7 +61,15 @@ const PHONE_RE = /^[+()\-.\s\d]{7,40}$/;
 const isOneOf = <T extends string>(list: readonly { value: T }[], v: unknown): v is T =>
   typeof v === "string" && list.some((o) => o.value === v);
 
-const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+/** Single-line value: control characters (incl. CR/LF) collapsed to spaces. */
+const str = (v: unknown) =>
+  typeof v === "string" ? v.replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s{2,}/g, " ").trim() : "";
+
+/** Multi-line value: keeps newlines and tabs, strips other control characters. */
+const multiline = (v: unknown) =>
+  typeof v === "string"
+    ? v.replace(/\r\n?/g, "\n").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim()
+    : "";
 
 /** Accepts "example.com" or a full URL; returns a normalised https URL or null. */
 export function normaliseUrl(raw: string): string | null {
@@ -103,7 +111,7 @@ export function validateContact(
   const services = Array.from(new Set(rawServices.filter((s) => isOneOf(serviceOptions, s)))) as ServiceValue[];
   if (services.length === 0) errors.services = "Please choose at least one option.";
 
-  const description = str(raw.description);
+  const description = multiline(raw.description);
   if (!description) errors.description = "Please tell us a little about your project.";
   else if (description.length < limits.description.min)
     errors.description = `Please add a little more detail (at least ${limits.description.min} characters).`;
