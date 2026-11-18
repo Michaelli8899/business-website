@@ -10,6 +10,22 @@ type Filter = "all" | ProjectCategory;
 export function ProjectFilter({ projects }: { projects: Project[] }) {
   const [filter, setFilter] = useState<Filter>("all");
   const visible = filter === "all" ? projects : projects.filter((p) => p.category === filter);
+  const categoriesWithWork = new Set(projects.map((p) => p.category));
+
+  // Filters only help when there is more than one kind of work to choose from.
+  if (categoriesWithWork.size < 2) {
+    return projects.length === 1 ? (
+      <ProjectCard project={projects[0]} headingLevel="h2" layout="featured" priority />
+    ) : (
+      <ul className="grid gap-x-8 gap-y-16 md:grid-cols-2">
+        {projects.map((p) => (
+          <li key={p.slug}>
+            <ProjectCard project={p} headingLevel="h2" />
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <div>

@@ -1,15 +1,17 @@
 import type { ReactNode } from "react";
 import { useParams } from "react-router";
 import { Link } from "@/components/ui/link";
-import { getProject, getRelatedProjects } from "@/data/projects";
+import { engagementLabels, getProject, getRelatedProjects } from "@/data/projects";
 import { Seo } from "@/app/head";
+import { assetPath } from "@/config/site";
 import NotFoundPage from "./not-found";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { ConceptBadge, Badge } from "@/components/ui/badge";
+import { EngagementBadge, Badge } from "@/components/ui/badge";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Reveal } from "@/components/ui/reveal";
 import { CheckList } from "@/components/ui/check-list";
-import { ProjectVisual } from "@/components/visuals/project-visual";
+import { ProjectImage } from "@/components/visuals/project-image";
+import { ArrowUpRight } from "lucide-react";
 import { ProjectCard } from "@/components/sections/project-card";
 import { CtaSection } from "@/components/sections/cta-section";
 
@@ -43,11 +45,13 @@ export default function CaseStudyPage() {
   const { caseStudy: cs } = project;
   const related = getRelatedProjects(project.slug, 2);
   const serviceLink = project.category === "websites" ? "/services/websites" : "/services/ai";
+  const isConcept = project.engagement === "concept";
+  const measured = cs.measuredResults && cs.measuredResults.length > 0;
 
   return (
     <>
       <Seo
-        title={`${project.title}${project.isConcept ? " (Concept)" : ""}`}
+        title={`${project.title}${isConcept ? " (Concept)" : ""}`}
         description={project.summary}
         path={`/work/${project.slug}`}
       />
@@ -61,7 +65,7 @@ export default function CaseStudyPage() {
             <div className="grid-site items-end gap-y-8">
               <div className="col-span-full lg:col-span-8">
                 <Reveal className="mb-6 flex flex-wrap items-center gap-3">
-                  {project.isConcept && <ConceptBadge />}
+                  <EngagementBadge engagement={project.engagement} />
                   <Badge>{project.type}</Badge>
                 </Reveal>
                 <Reveal delay={60}>
@@ -72,6 +76,18 @@ export default function CaseStudyPage() {
               </div>
               <Reveal delay={120} className="col-span-full lg:col-span-4">
                 <p className="text-lede text-ink-soft">{project.summary}</p>
+                {project.liveUrl && (
+                  <a
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group mt-6 inline-flex items-center gap-1.5 font-medium underline decoration-line-strong underline-offset-[6px] transition-colors hover:text-accent hover:decoration-accent"
+                  >
+                    Visit the live site
+                    <ArrowUpRight aria-hidden="true" className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                    <span className="sr-only">(opens in a new tab)</span>
+                  </a>
+                )}
               </Reveal>
             </div>
           </div>
@@ -79,15 +95,12 @@ export default function CaseStudyPage() {
 
         <div className="container-site pt-10 md:pt-14">
           <Reveal>
-            <div className="overflow-hidden rounded-lg">
-              <ProjectVisual
-                variant={project.visual}
-                image={project.image}
-                priority
-                sizes="(min-width: 1376px) 1280px, 100vw"
-                className="aspect-[4/3] md:aspect-[16/9]"
-              />
-            </div>
+            <ProjectImage
+              image={project.image}
+              priority
+              sizes="(min-width: 1376px) 1280px, 100vw"
+              className="aspect-[16/10] rounded-lg border border-line"
+            />
           </Reveal>
 
           {/* 1–2. Overview & type */}
@@ -95,8 +108,8 @@ export default function CaseStudyPage() {
             {[
               ["Project type", project.type],
               ["Category", project.category === "websites" ? "Websites" : "AI & Automation"],
-              ["Status", project.isConcept ? "Concept project" : "Client project"],
-              ["Scope", project.highlights.slice(0, 2).join(", ")],
+              ["Engagement", engagementLabels[project.engagement]],
+              ["Scope", project.scope.join(" · ")],
             ].map(([k, v]) => (
               <div key={k} className="border-t border-ink pt-4">
                 <dt className="font-mono text-eyebrow uppercase text-ink-soft">{k}</dt>
@@ -107,7 +120,7 @@ export default function CaseStudyPage() {
 
           <Block index="01" label="Overview">
             <p className="text-lede text-ink">{cs.overview}</p>
-            {project.isConcept && (
+            {isConcept && (
               <p className="mt-6 rounded-md border border-line bg-surface p-4 text-sm text-ink-soft">
                 This is a self-initiated concept project created to demonstrate the studio&apos;s approach. It does not represent
                 a real client, and no results have been measured.
@@ -115,7 +128,7 @@ export default function CaseStudyPage() {
             )}
           </Block>
 
-          <Block index="02" label="The business challenge">
+          <Block index="02" label="The challenge">
             <p className="text-lg leading-relaxed text-ink-soft">{cs.challenge}</p>
           </Block>
 
@@ -130,7 +143,7 @@ export default function CaseStudyPage() {
             </div>
           </Block>
 
-          <Block index="04" label="Proposed solution">
+          <Block index="04" label={isConcept ? "Proposed solution" : "The solution"}>
             <div className="grid gap-x-8 gap-y-8 sm:grid-cols-2">
               {cs.solution.map((s) => (
                 <div key={s.title} className="border-t border-line pt-5">
@@ -152,9 +165,21 @@ export default function CaseStudyPage() {
             <div className="mt-10 grid gap-8 md:grid-cols-2">
               {cs.gallery.map((g, i) => (
                 <Reveal as="figure" key={i} delay={i * 100}>
-                  <div className="overflow-hidden rounded-lg border border-line">
-                    <ProjectVisual variant={g.variant} view={g.view} />
-                  </div>
+                  {g.device === "mobile" ? (
+                    <div className="flex aspect-[16/10] items-center justify-center overflow-hidden rounded-lg border border-line bg-canvas bg-blueprint py-6">
+                      <img
+                        src={assetPath(g.image.src)}
+                        alt={g.image.alt}
+                        width={g.image.width}
+                        height={g.image.height}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-auto rounded-xl border border-line shadow-soft"
+                      />
+                    </div>
+                  ) : (
+                    <ProjectImage image={g.image} className="aspect-[16/10] rounded-lg border border-line" />
+                  )}
                   <figcaption className="mt-4 flex gap-3 text-sm text-ink-soft">
                     <span className="font-mono text-accent">Fig. {i + 1}</span>
                     {g.caption}
@@ -166,17 +191,19 @@ export default function CaseStudyPage() {
         </section>
 
         <div className="container-site pb-8 pt-8">
-          <Block index="06" label={project.isConcept ? "Intended business outcomes" : "Business outcomes"}>
-            {project.isConcept && (
+          <Block index="06" label={isConcept ? "Intended outcomes" : measured ? "Goals & results" : "Project goals"}>
+            {!measured && (
               <p className="mb-4 text-sm text-ink-soft">
-                These describe what the solution is designed to achieve. As a concept project, no outcomes have been measured.
+                {isConcept
+                  ? "These describe what the solution is designed to achieve. As a concept project, no outcomes have been measured."
+                  : "These are the goals the work was designed around. No performance metrics were measured for this project."}
               </p>
             )}
-            <CheckList items={cs.intendedOutcomes} />
-            {cs.measuredResults && cs.measuredResults.length > 0 && (
+            <CheckList items={cs.goals} />
+            {measured && (
               <div className="mt-10">
                 <h3 className="text-lg font-semibold">Measured results</h3>
-                <CheckList items={cs.measuredResults} className="mt-2" />
+                <CheckList items={cs.measuredResults!} className="mt-2" />
               </div>
             )}
           </Block>
@@ -214,17 +241,19 @@ export default function CaseStudyPage() {
       </article>
 
       {/* 8. Related */}
-      <section aria-labelledby="related-title" className="section-y border-t border-line bg-surface">
-        <div className="container-site">
-          <Eyebrow className="mb-4">Related projects</Eyebrow>
-          <h2 id="related-title" className="text-title font-semibold">More concepts to explore.</h2>
-          <div className="mt-12 grid gap-x-8 gap-y-14 md:grid-cols-2">
-            {related.map((p) => (
-              <ProjectCard key={p.slug} project={p} />
-            ))}
+      {related.length > 0 && (
+        <section aria-labelledby="related-title" className="section-y border-t border-line bg-surface">
+          <div className="container-site">
+            <Eyebrow className="mb-4">Related projects</Eyebrow>
+            <h2 id="related-title" className="text-title font-semibold">More work to explore.</h2>
+            <div className="mt-12 grid gap-x-8 gap-y-14 md:grid-cols-2">
+              {related.map((p) => (
+                <ProjectCard key={p.slug} project={p} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 9. CTA */}
       <CtaSection

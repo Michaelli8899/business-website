@@ -2,39 +2,58 @@
  * Portfolio projects.
  *
  * To add a project, append an entry to `projects`. The `slug` becomes the
- * URL (/work/[slug]). Set `isConcept: true` for self-initiated
- * demonstrations — they are labelled "Concept Project" everywhere and their
- * outcomes are presented as intended, not measured.
+ * URL (/work/[slug]); the page is prerendered automatically.
  *
- * `visual` selects an illustrated mockup from
- * src/components/visuals/project-visual.tsx. To use real screenshots
- * instead, add an `image` (path under /public) and it will take priority.
+ * Honesty rules:
+ *  - `engagement` must describe how the work was actually done.
+ *  - `caseStudy.goals` are what the work set out to achieve — never phrase
+ *    them as results.
+ *  - Only fill `caseStudy.measuredResults` with genuinely measured outcomes.
+ *  - Only show work you are allowed to show publicly.
+ *
+ * Images live in public/work/<slug>/ (WebP, ~1600px wide for desktop
+ * screenshots). Paths are root-relative; the base path is added at render.
  */
 
 export type ProjectCategory = "websites" | "ai";
 
-export type ProjectVisualVariant = "fitness" | "cafe" | "leads" | "assistant";
+export type Engagement = "client" | "academic" | "concept";
+
+export const engagementLabels: Record<Engagement, string> = {
+  client: "Client Project",
+  academic: "Academic Project",
+  concept: "Concept Project",
+};
+
+export type ProjectImage = {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+};
 
 export type Project = {
   slug: string;
   title: string;
   category: ProjectCategory;
-  /** Display label, e.g. "Web Design & Development". */
+  /** Display label, e.g. "Website Redesign". */
   type: string;
-  isConcept: boolean;
+  engagement: Engagement;
   summary: string;
-  highlights: string[];
-  visual: ProjectVisualVariant;
-  image?: { src: string; alt: string };
+  /** Short list of what the work covered. */
+  scope: string[];
+  /** Cover image used on cards and the case study hero. */
+  image: ProjectImage;
+  /** Public URL of the live work, if it is online. */
+  liveUrl?: string;
   caseStudy: {
     overview: string;
     challenge: string;
     approach: { title: string; description: string }[];
     solution: { title: string; description: string }[];
-    /** Extra visuals shown in the gallery section. */
-    gallery: { variant: ProjectVisualVariant | "workflow"; caption: string; view?: string }[];
-    intendedOutcomes: string[];
-    /** Only fill with genuinely measured results from real client work. */
+    gallery: { image: ProjectImage; caption: string; device?: "desktop" | "mobile" }[];
+    goals: string[];
+    /** Only genuinely measured results. */
     measuredResults?: string[];
     technology: string[];
     capabilities: string[];
@@ -49,313 +68,97 @@ export const projectCategories: { id: "all" | ProjectCategory; label: string }[]
 
 export const projects: Project[] = [
   {
-    slug: "boutique-fitness-studio",
-    title: "Boutique Fitness Studio",
+    slug: "pittsburgh-queer-history-project",
+    title: "Pittsburgh Queer History Project",
     category: "websites",
-    type: "Web Design & Development",
-    isConcept: true,
+    type: "Website Redesign",
+    engagement: "academic",
     summary:
-      "A responsive website for an independent fitness studio, bringing memberships, class schedules and booking together in one calm experience.",
-    highlights: [
-      "Responsive website",
-      "Membership information",
-      "Class schedules",
-      "Booking integration",
-    ],
-    visual: "fitness",
-    caseStudy: {
-      overview:
-        "This concept explores how a small fitness studio could present its classes and memberships with the polish of a larger brand, while keeping booking effortless on a phone.",
-      challenge:
-        "Independent studios often rely on social media posts and third-party booking pages that feel disconnected from their brand. Prospective members struggle to find class times, understand membership options, or book without downloading an app.",
-      approach: [
-        {
-          title: "Mobile-first journeys",
-          description:
-            "Most visitors arrive from a phone. Core journeys — view today's classes, compare memberships, book a first session — were mapped for one-handed use first.",
-        },
-        {
-          title: "Brand-led visual system",
-          description:
-            "A confident type scale and restrained palette let the studio's photography and personality lead, rather than template decoration.",
-        },
-        {
-          title: "Integrate, don't rebuild",
-          description:
-            "Instead of custom booking software, the design embeds an established scheduling platform the studio already trusts, styled to match.",
-        },
-      ],
-      solution: [
-        {
-          title: "Live class schedule",
-          description:
-            "A filterable weekly timetable by class type and instructor, synced from the booking platform.",
-        },
-        {
-          title: "Clear membership comparison",
-          description:
-            "Membership options presented side by side with plain-language explanations, editable by staff in the CMS.",
-        },
-        {
-          title: "Frictionless booking",
-          description:
-            "Book-a-class actions on every schedule entry, leading directly into the integrated booking flow.",
-        },
-        {
-          title: "Instructor profiles",
-          description:
-            "Short, personable instructor pages to help newcomers feel comfortable before their first visit.",
-        },
-      ],
-      gallery: [
-        { variant: "fitness", caption: "Homepage with today's classes surfaced first.", view: "home" },
-        { variant: "fitness", caption: "Weekly schedule with filters and booking actions.", view: "schedule" },
-      ],
-      intendedOutcomes: [
-        "Make class times and membership options easy to find on any device.",
-        "Reduce the number of steps between discovering the studio and booking a first class.",
-        "Give staff an easy way to update schedules, pricing pages and announcements themselves.",
-        "Present the studio with a consistent, recognisable brand.",
-      ],
-      technology: ["Next.js", "Headless CMS", "Scheduling platform embed", "Vercel"],
-      capabilities: [
-        "Website design",
-        "Responsive development",
-        "CMS integration",
-        "Booking integration",
-        "Deployment",
-      ],
+      "A redesign of the website for the Pittsburgh Queer History Project, an oral history and media initiative documenting LGBTQ after-hours nightlife in Pittsburgh — from information architecture and visual design through a WordPress build and a documented handover.",
+    scope: ["Visual & UX redesign", "Information architecture", "WordPress build", "Handover documentation"],
+    image: {
+      src: "/work/pqhp/home.webp",
+      alt: "Pittsburgh Queer History Project homepage: deep burgundy navigation bar and a large condensed headline over an archival photograph with a halftone treatment.",
+      width: 1600,
+      height: 1000,
     },
-  },
-  {
-    slug: "independent-cafe",
-    title: "Independent Café",
-    category: "websites",
-    type: "Web Design & CMS",
-    isConcept: true,
-    summary:
-      "A warm, brand-led website for a neighbourhood café with an always-current digital menu that staff can update in minutes.",
-    highlights: [
-      "Brand-led website",
-      "Digital menu",
-      "Location and contact information",
-      "Editable content",
-    ],
-    visual: "cafe",
+    liveUrl: "https://pittsburghqueerhistory.com/",
     caseStudy: {
       overview:
-        "This concept imagines a website for an independent café that captures the feel of the space and keeps practical information — menu, hours, location — accurate without technical help.",
+        "The Pittsburgh Queer History Project (PQHP) is an oral history and media initiative focused on LGBTQ after-hours nightlife in Pittsburgh from 1960 to 1990. Founded in 2012, it runs community programs such as Artist/Archivist Volunteer Nights and intergenerational archive screening events. The website redesign was completed as an academic project and covered the site structure, visual design, WordPress implementation and handover documentation.",
       challenge:
-        "Café menus change often, but many small businesses publish them as PDFs or images that quickly go out of date, are hard to read on phones, and are invisible to search engines.",
+        "A volunteer-driven archive has to serve several audiences at once: people looking for upcoming events, volunteers who want to help process collections, community members with materials to donate, and researchers looking for the project's publications. The site also needed to stay maintainable by the organization itself once the project ended, without ongoing developer support.",
       approach: [
         {
-          title: "Atmosphere first",
+          title: "Structure around what visitors come to do",
           description:
-            "Typography, colour and photography direction were chosen to echo the café's interior and packaging, so the site feels like an extension of the space.",
+            "The information architecture is organized into clear destinations — Events, Get Involved, Digital Archives, Publications and FAQs — so each audience has a direct path from the main navigation.",
         },
         {
-          title: "Structured, editable menu",
+          title: "A visual identity drawn from the archive",
           description:
-            "The menu is modelled as structured content — sections, items, dietary notes — so staff edit text, not files.",
+            "Deep burgundy and pink, condensed uppercase headlines and archival photography with a halftone treatment give the site the character of the material it preserves, while keeping text readable.",
         },
         {
-          title: "Practical information always visible",
+          title: "Built on a platform the organization can run",
           description:
-            "Hours, address and directions sit one tap away from every page.",
+            "The site is built on WordPress so volunteers can update events, pages and publications through a familiar editor rather than code.",
+        },
+        {
+          title: "Designed for handoff",
+          description:
+            "The design was broken down into documented, reusable components, with documentation covering how the site is structured and how to maintain it after handover.",
         },
       ],
       solution: [
         {
-          title: "Digital menu",
-          description:
-            "A fast, accessible menu with dietary labels and seasonal specials, readable on any screen and indexable by search engines.",
+          title: "Audience-based navigation",
+          description: "Top-level navigation for events, getting involved, digital archives, publications and FAQs, with events highlighted as the primary call to action.",
         },
         {
-          title: "Simple content editing",
-          description:
-            "A friendly CMS for menu items, opening hours, announcements and events.",
+          title: "Event listings",
+          description: "Upcoming programs presented with a prominent date, event artwork, venue and a description, on both the homepage and a dedicated Events page.",
         },
         {
-          title: "Location & contact",
-          description:
-            "Embedded map, directions, opening hours and contact details with structured data for local search.",
+          title: "Ways to get involved",
+          description: "A Get Involved page that explains volunteering and how to donate archival materials.",
         },
         {
-          title: "Story & gallery",
-          description:
-            "A short brand story and photo gallery that help first-time visitors know what to expect.",
+          title: "Publications library",
+          description: "Academic articles associated with the project listed with full citations and downloadable files.",
+        },
+        {
+          title: "Componentized, documented design",
+          description: "Reusable page components and maintenance documentation so the organization can keep the site current on its own.",
         },
       ],
       gallery: [
-        { variant: "cafe", caption: "Brand-led homepage with hours and location surfaced.", view: "home" },
-        { variant: "cafe", caption: "Structured digital menu with dietary labels.", view: "menu" },
-      ],
-      intendedOutcomes: [
-        "Keep menu, hours and announcements accurate without developer involvement.",
-        "Make the café easier to discover in local search.",
-        "Communicate the café's atmosphere before a first visit.",
-        "Provide a mobile-friendly alternative to PDF menus.",
-      ],
-      technology: ["Next.js", "Headless CMS", "Structured data (schema.org)", "Maps embed"],
-      capabilities: ["Brand-led web design", "CMS implementation", "Local SEO fundamentals", "Content training"],
-    },
-  },
-  {
-    slug: "intelligent-lead-management",
-    title: "Intelligent Lead Management",
-    category: "ai",
-    type: "AI & Workflow Automation",
-    isConcept: true,
-    summary:
-      "An automated pipeline that captures website inquiries, classifies and enriches them, updates the CRM and drafts a reply for human review.",
-    highlights: [
-      "Inquiry classification",
-      "Lead information extraction",
-      "CRM integration",
-      "AI-assisted response drafting",
-    ],
-    visual: "leads",
-    caseStudy: {
-      overview:
-        "This concept demonstrates how a service business could turn a busy inquiry inbox into an organised, consistent lead workflow — with a person approving every reply.",
-      challenge:
-        "Inquiries arrive through forms, email and social channels. Someone has to read each one, copy details into a CRM, decide who should follow up and write a response. It is repetitive, easy to delay, and inconsistent when the team is busy.",
-      approach: [
         {
-          title: "Map the current process",
-          description:
-            "Document how inquiries are handled today, which details matter, and where delays or errors typically creep in.",
+          image: { src: "/work/pqhp/home-events.webp", alt: "Homepage section introducing PQHP programs, followed by a latest-events listing with a large date, event poster and venue details.", width: 1600, height: 1000 },
+          caption: "Homepage programs introduction and latest-events listing.",
         },
         {
-          title: "Keep a human in the loop",
-          description:
-            "AI handles extraction, classification and first drafts. A team member reviews and approves every outbound message.",
+          image: { src: "/work/pqhp/events.webp", alt: "Events page with a magenta halftone hero image and an introduction to PQHP event programs.", width: 1600, height: 1000 },
+          caption: "Events page introducing the project's community programs.",
         },
         {
-          title: "Design for failure",
-          description:
-            "Low-confidence classifications and errors are flagged for manual handling instead of guessed at.",
+          image: { src: "/work/pqhp/publications.webp", alt: "Publications page listing academic articles with citations and download buttons.", width: 1600, height: 1000 },
+          caption: "Publications library with citations and downloads.",
+        },
+        {
+          image: { src: "/work/pqhp/mobile.webp", alt: "Mobile view of the PQHP homepage with a collapsed menu and the archival hero image.", width: 780, height: 1688 },
+          caption: "Responsive homepage on a phone.",
+          device: "mobile",
         },
       ],
-      solution: [
-        {
-          title: "Unified capture",
-          description:
-            "Form submissions and inquiry emails flow into a single automated workflow.",
-        },
-        {
-          title: "Classification & extraction",
-          description:
-            "A language model identifies the request type and urgency, and extracts structured details such as name, company and service interest.",
-        },
-        {
-          title: "CRM record creation",
-          description:
-            "A contact and opportunity are created or updated in the CRM, with the original message attached for context.",
-        },
-        {
-          title: "Draft-and-approve replies",
-          description:
-            "A tailored response is drafted using approved templates and business information, then queued for a person to review, edit and send.",
-        },
+      goals: [
+        "Give each audience — event-goers, volunteers, donors and researchers — a clear path from the main navigation.",
+        "Make upcoming events and volunteer opportunities easy to find.",
+        "Present the project's publications in one accessible place.",
+        "Let the organization maintain the website independently after handoff.",
       ],
-      gallery: [
-        { variant: "workflow", caption: "End-to-end inquiry workflow with a human approval step." },
-        { variant: "leads", caption: "Review queue showing classified leads and drafted replies.", view: "queue" },
-      ],
-      intendedOutcomes: [
-        "Less manual copying of inquiry details into the CRM.",
-        "Faster, more consistent first responses.",
-        "No inquiries lost between inboxes.",
-        "Better organised lead information for follow-up and reporting.",
-      ],
-      technology: ["Workflow automation platform", "LLM API", "CRM API", "Email integration"],
-      capabilities: [
-        "Workflow design",
-        "AI classification & extraction",
-        "CRM integration",
-        "Prompt design",
-        "Documentation & training",
-      ],
-    },
-  },
-  {
-    slug: "customer-service-assistant",
-    title: "Customer Service Assistant",
-    category: "ai",
-    type: "AI & System Integration",
-    isConcept: true,
-    summary:
-      "A website assistant that answers common questions from a business knowledge base, routes complex requests and escalates to a person when needed.",
-    highlights: [
-      "Frequently asked questions",
-      "Business knowledge base",
-      "Customer inquiry routing",
-      "Human escalation",
-    ],
-    visual: "assistant",
-    caseStudy: {
-      overview:
-        "This concept explores a customer assistant that is genuinely helpful for routine questions, honest about its limits, and quick to bring in a person.",
-      challenge:
-        "Small teams answer the same questions — hours, services, policies, availability — over and over, often outside business hours. Generic chatbots frustrate customers by guessing or blocking access to a real person.",
-      approach: [
-        {
-          title: "Grounded in real business knowledge",
-          description:
-            "Answers are drawn from a curated knowledge base the business controls — not the open internet.",
-        },
-        {
-          title: "Clear boundaries",
-          description:
-            "The assistant is designed to say when it does not know, and offers a human handoff rather than improvising.",
-        },
-        {
-          title: "Route, don't trap",
-          description:
-            "Complex or sensitive requests are routed to the right person with full context, so customers never repeat themselves.",
-        },
-      ],
-      solution: [
-        {
-          title: "Knowledge-based answers",
-          description:
-            "Responses to frequently asked questions sourced from an editable knowledge base, with links to relevant pages.",
-        },
-        {
-          title: "Inquiry routing",
-          description:
-            "Requests are categorised and sent to the appropriate inbox or team member.",
-        },
-        {
-          title: "Human escalation",
-          description:
-            "One tap to reach a person; the conversation history and extracted details travel with the handoff.",
-        },
-        {
-          title: "Conversation review",
-          description:
-            "Staff can review conversations to improve the knowledge base and spot recurring questions.",
-        },
-      ],
-      gallery: [
-        { variant: "assistant", caption: "Assistant answering from the knowledge base.", view: "chat" },
-        { variant: "workflow", caption: "Routing and escalation flow for complex requests." },
-      ],
-      intendedOutcomes: [
-        "Quicker answers to routine questions, including outside business hours.",
-        "Fewer repetitive questions reaching staff inboxes.",
-        "Smooth, context-rich handoffs to a person when needed.",
-        "A clearer picture of what customers ask most often.",
-      ],
-      technology: ["LLM API", "Retrieval over knowledge base", "Website widget", "Helpdesk / email integration"],
-      capabilities: [
-        "Conversation design",
-        "Knowledge base setup",
-        "System integration",
-        "Escalation workflows",
-        "Monitoring & maintenance",
-      ],
+      technology: ["WordPress", "Fortunato theme (CrestaProject)", "Responsive design"],
+      capabilities: ["Visual & UX design", "Information architecture", "WordPress development", "Component documentation", "Handover"],
     },
   },
 ];
@@ -366,10 +169,11 @@ export function getProject(slug: string): Project | undefined {
 
 export function getRelatedProjects(slug: string, limit = 2): Project[] {
   const current = getProject(slug);
-  if (!current) return projects.slice(0, limit);
-  const same = projects.filter((p) => p.slug !== slug && p.category === current.category);
-  const other = projects.filter((p) => p.slug !== slug && p.category !== current.category);
-  return [...same, ...other].slice(0, limit);
+  const others = projects.filter((p) => p.slug !== slug);
+  if (!current) return others.slice(0, limit);
+  const same = others.filter((p) => p.category === current.category);
+  const rest = others.filter((p) => p.category !== current.category);
+  return [...same, ...rest].slice(0, limit);
 }
 
 export function getProjectsByCategory(category: ProjectCategory): Project[] {

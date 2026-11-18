@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { engagementLabels, type Engagement } from "@/data/projects";
 
 type Tone = "neutral" | "accent" | "concept" | "inverse";
 
@@ -32,12 +33,12 @@ export function Badge({
   );
 }
 
-/** Standard label for self-initiated demonstration projects. */
-export function ConceptBadge({ className }: { className?: string }) {
+/** Label describing how a portfolio project was done (client, academic, concept). */
+export function EngagementBadge({ engagement, className }: { engagement: Engagement; className?: string }) {
   return (
     <Badge tone="concept" className={className}>
-      <span aria-hidden="true" className="size-1.5 rounded-full bg-clay" />
-      Concept Project
+      <span aria-hidden="true" className={cn("size-1.5 rounded-full", engagement === "concept" ? "bg-clay" : "bg-accent")} />
+      {engagementLabels[engagement]}
     </Badge>
   );
 }

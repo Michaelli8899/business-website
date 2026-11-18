@@ -6,7 +6,7 @@ import { ProjectCard } from "./project-card";
 
 export function RelatedProjects({
   projects,
-  eyebrow = "Concept projects",
+  eyebrow = "Selected work",
   title,
   description,
 }: {
@@ -15,6 +15,7 @@ export function RelatedProjects({
   title: string;
   description?: string;
 }) {
+  if (projects.length === 0) return null;
   return (
     <section aria-labelledby="related-title" className="section-y border-t border-line bg-surface">
       <div className="container-site">
@@ -31,13 +32,19 @@ export function RelatedProjects({
             </div>
           }
         />
-        <div className="mt-14 grid gap-x-8 gap-y-14 md:mt-20 md:grid-cols-2">
-          {projects.map((p, i) => (
-            <Reveal key={p.slug} delay={i * 100}>
-              <ProjectCard project={p} />
-            </Reveal>
-          ))}
-        </div>
+        {projects.length === 1 ? (
+          <Reveal className="mt-14 md:mt-20">
+            <ProjectCard project={projects[0]} layout="featured" />
+          </Reveal>
+        ) : (
+          <div className="mt-14 grid gap-x-8 gap-y-14 md:mt-20 md:grid-cols-2">
+            {projects.map((p, i) => (
+              <Reveal key={p.slug} delay={i * 100}>
+                <ProjectCard project={p} />
+              </Reveal>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

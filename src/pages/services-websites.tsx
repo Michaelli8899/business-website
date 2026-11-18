@@ -12,8 +12,9 @@ import { FaqSection } from "@/components/sections/faq-section";
 import { CtaSection } from "@/components/sections/cta-section";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { ButtonLink } from "@/components/ui/button";
-import { ProjectVisual } from "@/components/visuals/project-visual";
-import { ConceptBadge } from "@/components/ui/badge";
+import { ProjectImage } from "@/components/visuals/project-image";
+import { EngagementBadge } from "@/components/ui/badge";
+import { Link } from "@/components/ui/link";
 
 const seo: SeoProps = {
   title: "Website Solutions",
@@ -23,6 +24,10 @@ const seo: SeoProps = {
 };
 
 export default function WebsitesPage() {
+  const websiteWork = getProjectsByCategory("websites");
+  const featured = websiteWork[0];
+  // A different screenshot from the work section's cover, to avoid repeating it.
+  const heroImage = featured?.caseStudy.gallery.find((g) => g.device !== "mobile")?.image ?? featured?.image;
   return (
     <>
       <Seo {...seo} />
@@ -42,10 +47,23 @@ export default function WebsitesPage() {
           </>
         }
         aside={
-          <div className="relative overflow-hidden rounded-lg">
-            <ProjectVisual variant="fitness" priority sizes="(min-width: 1024px) 40vw, 100vw" />
-            <ConceptBadge className="absolute left-4 top-4" />
-          </div>
+          featured && (
+            <figure>
+              <Link href={`/work/${featured.slug}`} className="group relative block overflow-hidden rounded-lg border border-line">
+                <ProjectImage
+                  image={heroImage!}
+                  priority
+                  className="aspect-[16/10]"
+                  imgClassName="transition-transform duration-700 ease-out-soft group-hover:scale-[1.025]"
+                  sizes="(min-width: 1024px) 40vw, 100vw"
+                />
+                <EngagementBadge engagement={featured.engagement} className="absolute left-4 top-4" />
+              </Link>
+              <figcaption className="mt-3 text-sm text-ink-soft">
+                {featured.title} — {featured.type.toLowerCase()}
+              </figcaption>
+            </figure>
+          )
         }
       />
 
@@ -64,9 +82,9 @@ export default function WebsitesPage() {
       </section>
 
       <RelatedProjects
-        projects={getProjectsByCategory("websites")}
-        title="Website concepts."
-        description="Self-initiated concept projects that show the design and build approach in practice."
+        projects={websiteWork}
+        title="Recent website work."
+        description="How the design and build process comes together on a real project."
       />
 
       <Process

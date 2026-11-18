@@ -43,7 +43,7 @@ Then open http://localhost:4173/business-website/.
 | `/`                  | Homepage                                              |
 | `/services/websites` | Website Solutions                                     |
 | `/services/ai`       | AI & Automation, with the interactive workflow demo   |
-| `/work`              | Portfolio, with category filters                      |
+| `/work`              | Portfolio (category filters appear with more than one category) |
 | `/work/:slug`        | Case study (one per entry in `src/data/projects.ts`)  |
 | `/about`             | About the studio and founder                          |
 | `/contact`           | Project inquiry form. `?service=new-website` pre-selects a service. |
@@ -222,11 +222,14 @@ All copy lives in plain TypeScript files, so no CMS is needed.
 
 ### Adding a portfolio project
 
-Add an entry to `projects` in `src/data/projects.ts`. Its page at `/work/<slug>` is created and prerendered automatically. It also appears in the grid, the filters, the sitemap and the related-projects lists.
+Add an entry to `projects` in `src/data/projects.ts`. Its page at `/work/<slug>` is created and prerendered automatically. It also appears in the Work page, the sitemap, the matching service page and related-project lists.
 
-- `isConcept: true` adds the **Concept Project** label and frames outcomes as *intended*. Use `false` only for real client work.
-- `visual` picks an illustrated mockup. To use a real screenshot, add `image: { src: "/work/my-project.jpg", alt: "…" }` and put the file in `public/work/`.
-- `caseStudy.measuredResults` should only contain genuinely measured results from client work.
+- **`engagement`** must describe how the work was actually done: `"client"`, `"academic"` or `"concept"`. It is shown as a badge everywhere.
+- **Images:** put screenshots in `public/work/<slug>/`. WebP around 1600 px wide suits desktop shots. List each image with its `alt`, `width` and `height`; the dimensions prevent layout shift. Gallery items with `device: "mobile"` are shown in a phone-sized frame.
+- **`liveUrl`** (optional) adds a "Visit the live site" link.
+- **Goals vs results:** `caseStudy.goals` are what the work set out to achieve and are presented as goals, with a note that no metrics were measured. Only add `caseStudy.measuredResults` for genuinely measured outcomes.
+- Only show work you have permission to show publicly.
+- **Layout:** with a single project, the homepage, Work page and service page use a featured side-by-side layout. With more, they switch to a grid automatically. Category filters appear once there's work in more than one category.
 
 ### Updating branding
 
