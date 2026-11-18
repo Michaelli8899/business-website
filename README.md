@@ -96,7 +96,7 @@ Design tokens (colours, type scale, radii, shadows, container widths, motion) ar
 
 ## Deploying to GitHub Pages
 
-`.github/workflows/deploy-pages.yml` runs on every push to `main` or `claude/sweet-maxwell-7o8ldw`, and on manual runs. It does the following:
+`.github/workflows/deploy-pages.yml` runs on every push to `main`, and on manual runs. **To deploy, merge your work into `main`.** It does the following:
 
 1. Installs dependencies, then runs lint and typecheck.
 2. Builds with `VITE_BASE_PATH` and `VITE_SITE_URL` taken from GitHub Pages, so links, assets, canonical URLs and the sitemap all match the published address.
@@ -105,7 +105,7 @@ Design tokens (colours, type scale, radii, shadows, container widths, motion) ar
 **One-time repository settings:**
 
 - **Settings → Pages → Build and deployment → Source:** set to **GitHub Actions**.
-- **Settings → Environments → github-pages → Deployment branches:** by default only the default branch may deploy. To deploy from `claude/sweet-maxwell-7o8ldw`, add it here; otherwise merge to `main`.
+- **Deployment branch:** the `github-pages` environment only accepts the default branch, so deployments run from `main`.
 - **Private repository:** Pages needs a paid GitHub plan, and the site is publicly reachable unless you use Enterprise Cloud's private Pages.
 
 **Search engines:** this is a test deployment, so the workflow sets `VITE_NOINDEX=true`. Every page is `noindex` and robots.txt disallows crawling. Remove that line when the site should be indexed.
@@ -243,7 +243,6 @@ Add an entry to `projects` in `src/data/projects.ts`. Its page at `/work/<slug>`
 
 ## Launch checklist
 
-- [ ] Allow the deploy branch in the `github-pages` environment, or merge to `main`
 - [ ] Deploy the contact function and set `VITE_CONTACT_ENDPOINT`. Verify a Resend sender domain, then send a test inquiry.
 - [ ] **Owner/legal review of the privacy policy**, then set `VITE_PRIVACY_LAST_UPDATED` and `VITE_PRIVACY_REVIEWED=true`
 - [ ] Choose a domain, if any (see *Domain*), and remove `VITE_NOINDEX` when ready to be indexed

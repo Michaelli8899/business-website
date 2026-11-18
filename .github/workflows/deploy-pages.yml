@@ -3,8 +3,8 @@
 #
 # One-time setup:
 #   - Settings → Pages → Build and deployment → Source: "GitHub Actions"
-#   - Settings → Environments → github-pages → Deployment branches: allow the
-#     branch you deploy from (by default only the default branch may deploy)
+#   - Deploys run from `main` (the github-pages environment only accepts the
+#     default branch). Work happens on feature branches and is merged to deploy.
 #
 # Optional build settings (Settings → Secrets and variables → Actions →
 # Variables): VITE_CONTACT_ENDPOINT, VITE_LINKEDIN_URL, VITE_INSTAGRAM_URL,
@@ -15,7 +15,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, claude/sweet-maxwell-7o8ldw]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
