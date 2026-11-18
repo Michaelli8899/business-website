@@ -31,7 +31,9 @@ export function ProjectFilter({ projects }: { projects: Project[] }) {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
         <div role="group" aria-label="Filter projects by category" className="flex flex-wrap gap-2">
-          {projectCategories.map((c) => {
+          {projectCategories
+            .filter((c) => c.id === "all" || categoriesWithWork.has(c.id))
+            .map((c) => {
             const count = c.id === "all" ? projects.length : projects.filter((p) => p.category === c.id).length;
             const selected = filter === c.id;
             return (

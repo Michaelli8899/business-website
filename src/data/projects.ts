@@ -246,69 +246,6 @@ export const projects: Project[] = [
     },
   },
   {
-    slug: "nio-in-vehicle-ai-agent",
-    title: "NIO In-Vehicle AI Agent",
-    category: "ai",
-    type: "AI Product Design · Vehicle UX",
-    engagement: "internship",
-    summary:
-      "Product design for NIO drivers: an in-car AI assistant that remembers places, schedules reminders and recommends short detours during a commute — designed for voice and visual interaction.",
-    scope: ["Research", "Concept development", "Multimodal interaction design", "Prototyping"],
-    role: "Designer, Researcher",
-    team: "Michael Li with two designer mentors",
-    timeline: "7 weeks",
-    image: {
-      src: "/work/nio/cover.webp",
-      alt: "NIO in-car center display showing a navigation map with the assistant suggesting nearby places.",
-      width: 1600,
-      height: 630,
-      focus: "78% 50%",
-    },
-    sourceUrl: "https://www.michaelmli.com/#/case/nio",
-    caseStudy: {
-      overview:
-        "During a UI/UX internship at NIO, the team explored how improved assistive driving could free enough attention for richer in-vehicle services — ones that work better in the car than on a phone. Michael researched the opportunity and designed a concept for NOMI, NIO's in-car AI assistant.",
-      challenge:
-        "Drivers notice places and small leisure opportunities during their commutes, but busy routines make them easy to forget. NIO drivers often struggle to balance work and leisure, feel worn down by repetitive routines and want more chances to relax — yet planning is the friction.",
-      approach: [
-        {
-          title: "Research the opportunity",
-          description:
-            "Competitor and EV market research highlighted three trends: GPT-style natural interaction, personalization, and assistive driving that gives drivers more freedom. Personas and a journey map grounded the concept in real commute scenarios.",
-        },
-        {
-          title: "Focus a broad brief",
-          description:
-            "Two scenarios — forgetting a place you meant to visit, and after-work fatigue — narrowed the work into a loop of record, recommend and remind.",
-        },
-        {
-          title: "Design for the car, not the phone",
-          description:
-            "Visuals carry essential information while NOMI provides detail by voice; choices start from what the driver wants to do; and flows adapt to location, timing, navigation state and whether the car is parked or moving.",
-        },
-      ],
-      solution: [
-        { title: "Explore & schedule", description: "Drivers ask NOMI about a place by voice and schedule a future visit while driving." },
-        { title: "Reminders", description: "After planning a trip, the vehicle reminds the driver at an appropriate moment." },
-        { title: "Route-aware recommendations", description: "Saved and frequently visited places become suggestions for short stops along the commute." },
-        { title: "Task follow-through", description: "Once the driver picks a task, the vehicle turns it into a concrete destination update." },
-      ],
-      gallery: [
-        { image: { src: "/work/nio/explore.webp", alt: "Annotated exploration flow: the driver asks the voice agent about a restaurant outside and confirms a future visit.", width: 1600, height: 573 }, caption: "Exploration and scheduling flow, annotated." },
-        { image: { src: "/work/nio/multimodal.webp", alt: "Multimodal recommendation scenario: the visual display shows place options while paired audio from the assistant explains the choices.", width: 1600, height: 832 }, caption: "Visuals for essentials, voice for detail." },
-        { image: { src: "/work/nio/context.webp", alt: "In-car display with a place card showing a photo, rating and options to navigate now or later.", width: 1600, height: 1000 }, caption: "Context-aware information about a place." },
-        { image: { src: "/work/nio/task.webp", alt: "In-car map with the assistant offering photo-based recommendations for a stop.", width: 1600, height: 1000 }, caption: "Context-aware task recommendations during a commute." },
-      ],
-      goals: [
-        "Use the car's context instead of copying a phone planning experience into the dashboard.",
-        "Help drivers remember and act on places they notice.",
-        "Keep interactions safe and low-effort while driving.",
-      ],
-      technology: ["Figma"],
-      capabilities: ["Vehicle UX", "Conversational & voice design", "Multimodal prototyping", "User research"],
-    },
-  },
-  {
     slug: "motionmend",
     title: "MotionMend",
     category: "product",
