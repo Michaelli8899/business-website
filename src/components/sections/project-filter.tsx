@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import type { Project, ProjectCategory } from "@/data/projects";
 import { projectCategories } from "@/data/projects";

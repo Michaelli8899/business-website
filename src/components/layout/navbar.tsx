@@ -1,7 +1,5 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/components/ui/link";
+import { useLocation } from "react-router";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ChevronDown, Menu, X, ArrowRight } from "lucide-react";
 import { mainNav, primaryCta, servicesNav } from "@/data/navigation";
@@ -16,7 +14,7 @@ function isActive(pathname: string, href: string) {
 }
 
 export function Navbar() {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [lastPath, setLastPath] = useState(pathname);

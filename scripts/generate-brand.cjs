@@ -5,7 +5,7 @@
  * everywhere, with no font dependency.
  *
  * Usage (one-off; these packages are intentionally not project dependencies):
- *   npm i --no-save opentype.js@1.3.4
+ *   npm i --no-save opentype.js@1.3.4 geist@1.9.2
  *   node scripts/generate-brand.cjs
  *
  * PNG/ICO output uses the Playwright + Chromium install available in the
@@ -17,15 +17,18 @@
  *   public/brand/frame-and-flow-wordmark-light.svg  (for light backgrounds)
  *   public/brand/frame-and-flow-wordmark-dark.svg   (for dark backgrounds)
  *   public/brand/frame-and-flow-monogram.svg        f&f. monogram tile
- *   src/app/icon.svg                                SVG favicon
- *   src/app/favicon.ico, src/app/apple-icon.png, public/brand/icon-192.png, icon-512.png
+ *   public/icon.svg                                 SVG favicon
+ *   public/favicon.ico, public/apple-touch-icon.png, public/brand/icon-192.png, icon-512.png
+ *   public/og.png                                   1200×630 social sharing image
  */
 const fs = require("fs");
 const path = require("path");
 const opentype = require("opentype.js");
 
 const root = path.resolve(__dirname, "..");
-const font = opentype.loadSync(path.join(root, "node_modules/geist/dist/fonts/geist-sans/Geist-SemiBold.ttf"));
+// The `geist` package ships TTF files (opentype.js cannot read WOFF2).
+const geistDist = path.dirname(require.resolve("geist/font")); // resolves only, does not execute
+const font = opentype.loadSync(path.join(geistDist, "fonts/geist-sans/Geist-SemiBold.ttf"));
 
 const COLORS = {
   charcoal: "#20231F",
@@ -148,7 +151,7 @@ fs.writeFileSync(path.join(root, "public/brand/frame-and-flow-wordmark-light.svg
 fs.writeFileSync(path.join(root, "public/brand/frame-and-flow-wordmark-dark.svg"), dark);
 const tile = monogramTile({});
 fs.writeFileSync(path.join(root, "public/brand/frame-and-flow-monogram.svg"), tile);
-fs.writeFileSync(path.join(root, "src/app/icon.svg"), tile);
+fs.writeFileSync(path.join(root, "public/icon.svg"), tile);
 console.log("SVG assets written.");
 
 if (process.argv.includes("--svg-only")) process.exit(0);
@@ -167,7 +170,7 @@ if (process.argv.includes("--svg-only")) process.exit(0);
   }
   // Full-bleed (no rounded corners) for platforms that apply their own mask.
   const square = monogramTile({ radius: 0, fill: 0.64 });
-  fs.writeFileSync(path.join(root, "src/app/apple-icon.png"), await png(square, 180));
+  fs.writeFileSync(path.join(root, "public/apple-touch-icon.png"), await png(square, 180));
   fs.writeFileSync(path.join(root, "public/brand/icon-192.png"), await png(square, 192));
   fs.writeFileSync(path.join(root, "public/brand/icon-512.png"), await png(square, 512));
 
@@ -193,7 +196,26 @@ if (process.argv.includes("--svg-only")) process.exit(0);
     offset += img.length;
     return e;
   });
-  fs.writeFileSync(path.join(root, "src/app/favicon.ico"), Buffer.concat([header, ...entries, ...images]));
+  fs.writeFileSync(path.join(root, "public/favicon.ico"), Buffer.concat([header, ...entries, ...images]));
+
+  // Social sharing image (1200×630).
+  const geist = fs.readFileSync(path.join(root, "node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2")).toString("base64");
+  const wm = `<svg width="${((wordmark.width / wordmark.height) * 44).toFixed(1)}" height="44" viewBox="0 0 ${wordmark.width} ${wordmark.height}">${wordmark.parts
+    .map((p) => `<path fill="${p.role === "ink" ? COLORS.charcoal : COLORS.sage}" d="${p.d}"/>`)
+    .join("")}</svg>`;
+  await page.setViewportSize({ width: 1200, height: 630 });
+  await page.setContent(`<html><head><style>
+    @font-face { font-family: Geist; src: url(data:font/woff2;base64,${geist}) format("woff2"); font-weight: 100 900; }
+    body { margin: 0; width: 1200px; height: 630px; box-sizing: border-box; padding: 72px; display: flex; flex-direction: column; justify-content: space-between;
+      font-family: Geist, sans-serif; background: ${COLORS.ivory}; color: ${COLORS.charcoal};
+      background-image: linear-gradient(to right, rgba(32,35,31,.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(32,35,31,.06) 1px, transparent 1px);
+      background-size: 40px 40px; }
+    h1 { margin: 0; font-size: 104px; font-weight: 650; letter-spacing: -4px; line-height: .95; }
+    h1 span { color: ${COLORS.sage}; display: block; }
+    p { margin: 0; font-size: 24px; color: #62685F; letter-spacing: 3px; text-transform: uppercase; }
+  </style></head><body>${wm}<h1>Better websites.<span>Smarter businesses.</span></h1><p>Frame &amp; Flow Studio · Websites &amp; Business Automation</p></body></html>`);
+  await page.evaluate("document.fonts.ready"); // runs in the browser page
+  fs.writeFileSync(path.join(root, "public/og.png"), await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 } }));
   await browser.close();
   console.log("Raster icons written.");
 })();

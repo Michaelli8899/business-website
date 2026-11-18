@@ -1,12 +1,16 @@
-# Test deployment to GitHub Pages (static export).
+# Builds the React (Vite) site, prerenders every route to static HTML, and
+# deploys it to GitHub Pages.
 #
-# GitHub Pages only serves static files, so this build excludes the
-# /api/contact route: the contact form shows its "not connected" notice and
-# an email fallback. For working inquiry delivery, deploy the default build
-# to a Node host such as Vercel (see README → Deployment).
+# One-time setup:
+#   - Settings → Pages → Build and deployment → Source: "GitHub Actions"
+#   - Settings → Environments → github-pages → Deployment branches: allow the
+#     branch you deploy from (by default only the default branch may deploy)
 #
-# One-time setup: Settings → Pages → Build and deployment → Source:
-# "GitHub Actions".
+# Optional build settings (Settings → Secrets and variables → Actions →
+# Variables): VITE_CONTACT_ENDPOINT, VITE_LINKEDIN_URL, VITE_INSTAGRAM_URL,
+# VITE_GITHUB_URL, VITE_BOOKING_URL, VITE_PRIVACY_LAST_UPDATED,
+# VITE_PRIVACY_REVIEWED. These are public build-time values — never put API
+# keys here; the Resend key belongs on the contact function's host.
 name: Deploy to GitHub Pages
 
 on:
@@ -44,22 +48,27 @@ jobs:
       - name: Lint and typecheck
         run: npm run lint && npm run typecheck
 
-      - name: Build static export
+      - name: Build and prerender
         run: npm run build
         env:
-          STATIC_EXPORT: "true"
-          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
-          NEXT_PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          VITE_SITE_URL: ${{ steps.pages.outputs.base_url }}
           # Test deployment — keep it out of search engines.
-          NEXT_PUBLIC_NOINDEX: "true"
-          NEXT_TELEMETRY_DISABLED: "1"
+          VITE_NOINDEX: "true"
+          VITE_CONTACT_ENDPOINT: ${{ vars.VITE_CONTACT_ENDPOINT }}
+          VITE_LINKEDIN_URL: ${{ vars.VITE_LINKEDIN_URL }}
+          VITE_INSTAGRAM_URL: ${{ vars.VITE_INSTAGRAM_URL }}
+          VITE_GITHUB_URL: ${{ vars.VITE_GITHUB_URL }}
+          VITE_BOOKING_URL: ${{ vars.VITE_BOOKING_URL }}
+          VITE_PRIVACY_LAST_UPDATED: ${{ vars.VITE_PRIVACY_LAST_UPDATED }}
+          VITE_PRIVACY_REVIEWED: ${{ vars.VITE_PRIVACY_REVIEWED }}
 
       - name: Disable Jekyll processing
-        run: touch out/.nojekyll
+        run: touch dist/.nojekyll
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: out
+          path: dist
 
   deploy:
     needs: build

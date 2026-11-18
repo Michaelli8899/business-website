@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/components/ui/link";
 import { ArrowUpRight } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { footerNav } from "@/data/navigation";

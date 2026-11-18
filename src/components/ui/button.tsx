@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link, type LinkProps } from "@/components/ui/link";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -51,7 +51,7 @@ export function ButtonLink({
   className,
   children,
   ...rest
-}: CommonProps & Omit<ComponentPropsWithoutRef<typeof Link>, "className" | "children">) {
+}: CommonProps & Omit<LinkProps, "className" | "children">) {
   return (
     <Link href={href} className={cn(base, variants[variant], sizes[size], className)} {...rest}>
       {children}

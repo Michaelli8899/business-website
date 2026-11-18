@@ -63,12 +63,14 @@ const isOneOf = <T extends string>(list: readonly { value: T }[], v: unknown): v
 
 /** Single-line value: control characters (incl. CR/LF) collapsed to spaces. */
 const str = (v: unknown) =>
+  // eslint-disable-next-line no-control-regex -- intentionally strips control characters
   typeof v === "string" ? v.replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s{2,}/g, " ").trim() : "";
 
 /** Multi-line value: keeps newlines and tabs, strips other control characters. */
 const multiline = (v: unknown) =>
   typeof v === "string"
-    ? v.replace(/\r\n?/g, "\n").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim()
+    ? // eslint-disable-next-line no-control-regex -- intentionally strips control characters
+      v.replace(/\r\n?/g, "\n").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim()
     : "";
 
 /** Accepts "example.com" or a full URL; returns a normalised https URL or null. */

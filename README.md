@@ -4,145 +4,188 @@
 
 Marketing website for **Frame & Flow Studio**, an independent digital solutions studio in Dallas, Texas, founded by Michael Li. It covers two services: **Website Design & Development** and **AI & Business Automation**.
 
-Built with **Next.js 16 (App Router)**, **TypeScript**, **Tailwind CSS 4**, **Lucide** icons and the **Geist** typeface (self-hosted through the `geist` package, so no external font requests).
+A **React** single-page app built with **Vite**, **TypeScript**, **React Router**, **Tailwind CSS 4** and **Lucide** icons, using the self-hosted **Geist** typeface. At build time, every route is **prerendered to static HTML**, so pages load fast, are crawlable and carry correct metadata. React then hydrates them in the browser. It deploys to **GitHub Pages**.
 
 ---
 
 ## Quick start
 
-Requires Node.js 20.9+ (developed on Node 22).
+Requires Node.js 20.19+ (developed on Node 22).
 
 ```bash
 npm install
-cp .env.example .env.local   # optional — the site runs without it
-npm run dev                  # http://localhost:3000
+npm run dev        # http://localhost:3000
 ```
 
-| Command             | What it does                                           |
-| ------------------- | ------------------------------------------------------ |
-| `npm run dev`       | Development server with hot reload                     |
-| `npm run build`     | Production build                                       |
-| `npm start`         | Serve the production build                             |
-| `npm run lint`      | ESLint (Next.js core-web-vitals + TypeScript rules)    |
-| `npm run typecheck` | Generates route types, then runs `tsc --noEmit`        |
-| `npm run check`     | Lint, typecheck and build together. Run before deploying |
+| Command             | What it does                                                    |
+| ------------------- | --------------------------------------------------------------- |
+| `npm run dev`       | Vite dev server with hot reload (client-rendered)               |
+| `npm run build`     | Client build, server render bundle, then prerender to `dist/`   |
+| `npm run preview`   | Serve the production build locally                              |
+| `npm run lint`      | ESLint (TypeScript + React Hooks rules)                         |
+| `npm run typecheck` | `tsc --noEmit` for the app and the contact function             |
+| `npm run check`     | Lint, typecheck and build. Run before pushing.                  |
+
+To preview the GitHub Pages build locally, including the `/business-website/` base path:
+
+```bash
+VITE_BASE_PATH=/business-website npm run build && npm run preview
+```
+
+Then open http://localhost:4173/business-website/.
 
 ---
 
 ## Routes
 
-| Route                | Page                                                    |
-| -------------------- | ------------------------------------------------------- |
-| `/`                  | Homepage                                                |
-| `/services/websites` | Website Solutions                                       |
-| `/services/ai`       | AI & Automation, with the interactive workflow demo     |
-| `/work`              | Portfolio, with category filters                        |
-| `/work/[slug]`       | Case study (static, generated from `src/data/projects.ts`) |
-| `/about`             | About the studio and founder                            |
-| `/contact`           | Project inquiry form. `?service=new-website` pre-selects a service |
-| `/privacy`           | Privacy policy (template)                               |
-| `/api/contact`       | Contact form endpoint (POST). Server builds only; absent from the static Pages export |
-| `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`, `/og.png` | Generated SEO assets (`og.png` is referenced in metadata only when an absolute URL is known) |
+| Route                | Page                                                  |
+| -------------------- | ----------------------------------------------------- |
+| `/`                  | Homepage                                              |
+| `/services/websites` | Website Solutions                                     |
+| `/services/ai`       | AI & Automation, with the interactive workflow demo   |
+| `/work`              | Portfolio, with category filters                      |
+| `/work/:slug`        | Case study (one per entry in `src/data/projects.ts`)  |
+| `/about`             | About the studio and founder                          |
+| `/contact`           | Project inquiry form. `?service=new-website` pre-selects a service. |
+| `/privacy`           | Privacy policy                                        |
+| anything else        | Not-found page (served as `404.html` on GitHub Pages) |
+
+The router lives in `src/app/app.tsx`. The list of prerendered routes is in `src/app/routes.ts`, and new projects are added to it automatically.
 
 ---
 
 ## Project structure
 
 ```
+index.html               HTML shell (prerender placeholders for head + app)
+vite.config.ts           Vite config. Base path comes from VITE_BASE_PATH.
 src/
-  app/                 Routes, layout, global styles, SEO files, API route
+  main.tsx               Browser entry: hydrates prerendered HTML (BrowserRouter)
+  entry-server.tsx       Render entry used by the prerender script (StaticRouter)
+  app/
+    app.tsx              Layout and routes
+    routes.ts            Routes to prerender
+    head.tsx             <Seo>: title, description, canonical, Open Graph, JSON-LD
+    scroll-manager.tsx   Scroll and focus handling on navigation
+  pages/                 One component per route
   components/
-    layout/            Navbar (with dropdown + mobile menu), footer, logo
-    sections/          Page sections: hero, service cards, project cards, process,
-                       ownership, FAQ, CTA, workflow demo, project filter, contact form
-    ui/                Primitives: Button, TextLink, Eyebrow, SectionHeading, Badge,
-                       Breadcrumbs, Accordion, CheckList, Reveal
-    visuals/           SVG/HTML illustrations (hero composition, project mockups)
-  config/site.ts       Studio name, founder, contact details, social links
-  data/                All page content: services, projects, process, FAQs,
-                       maintenance options, about-page principles, navigation
-  lib/
-    contact/           Shared validation schema and Resend delivery
-    rate-limit.ts      Rate limiter (Upstash Redis when configured, in-memory fallback)
-    log.ts             Structured server logging
-    metadata.ts        Per-page metadata helper
-  instrumentation.ts   Server error hook (onRequestError)
-public/brand/          Wordmark (light/dark), monogram, PNG app icons
+    layout/              Navbar (dropdown + mobile menu), footer, logo
+    sections/            Hero, service cards, project cards, process, ownership,
+                         FAQ, CTA, workflow demo, project filter, contact form
+    ui/                  Button, Link, TextLink, Eyebrow, SectionHeading, Badge,
+                         Breadcrumbs, Accordion, CheckList, Reveal
+    visuals/             SVG/HTML illustrations (hero, project mockups)
+  config/
+    identity.ts          Studio name, email, location (shared with the server)
+    site.ts              Full site config: founder, SEO, URLs, social links
+  data/                  All page content (services, projects, FAQs, …)
+  lib/contact/schema.ts  Contact validation, shared by the form and the server
+  styles/globals.css     Design tokens (@theme) and base styles
+server/                  Optional contact-form backend (Resend), deployed separately
+public/                  Favicon, app icons, og.png, brand SVGs
 scripts/
-  generate-brand.cjs   Regenerates every logo and icon asset from Geist SemiBold
+  prerender.mjs          Renders each route to HTML; writes 404, sitemap, robots, manifest
+  generate-brand.cjs     Regenerates logo, icon and og.png assets
+.github/workflows/
+  deploy-pages.yml       Build and deploy to GitHub Pages
 ```
 
-Design tokens (colours, type scale, radii, shadows, container widths, motion) are defined in the `@theme` block at the top of `src/app/globals.css` and are available as Tailwind utilities, for example `bg-canvas`, `text-ink-soft`, `text-headline` and `ease-out-soft`.
+Design tokens (colours, type scale, radii, shadows, container widths, motion) are defined in the `@theme` block of `src/styles/globals.css` and used as Tailwind utilities, for example `bg-canvas`, `text-ink-soft`, `text-headline` and `ease-out-soft`.
 
 ---
 
-## Environment variables
+## Deploying to GitHub Pages
 
-See `.env.example`. Nothing is required to run the site locally. Studio identity (name, founder, public email, location) lives in `src/config/site.ts` rather than in environment variables.
+`.github/workflows/deploy-pages.yml` runs on every push to `main` or `claude/sweet-maxwell-7o8ldw`, and on manual runs. It does the following:
 
-| Variable | Scope | Purpose |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | public | Production URL. **Not set yet; no domain has been chosen.** See *Domain configuration*. |
-| `NEXT_PUBLIC_LINKEDIN_URL`, `NEXT_PUBLIC_INSTAGRAM_URL`, `NEXT_PUBLIC_GITHUB_URL` | public | Social profiles. Each is hidden unless it is a valid https profile URL on the matching domain. |
-| `NEXT_PUBLIC_BOOKING_URL` | public | Optional scheduling link on the contact page |
-| `NEXT_PUBLIC_PRIVACY_LAST_UPDATED` | public | Publication date shown on `/privacy` |
-| `NEXT_PUBLIC_PRIVACY_REVIEWED` | public | `true` hides the "pending review" notice on `/privacy` |
-| `RESEND_API_KEY` | **server** | Resend API key |
-| `CONTACT_TO_EMAIL` | **server** | Inquiry recipient(s). Defaults to `michaelmlidesign@gmail.com`. |
-| `CONTACT_FROM_EMAIL` | **server** | Verified Resend sender. Required in production. |
-| `CONTACT_ALLOW_TEST_SENDER` | **server** | `true` allows Resend's test sender outside `next dev` (testing only) |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | **server** | Shared rate limiter (recommended for serverless) |
+1. Installs dependencies, then runs lint and typecheck.
+2. Builds with `VITE_BASE_PATH` and `VITE_SITE_URL` taken from GitHub Pages, so links, assets, canonical URLs and the sitemap all match the published address.
+3. Uploads `dist/` and deploys it.
 
-`NEXT_PUBLIC_*` values are built into the page at build time, so **rebuild after changing them**. Never put API keys in `NEXT_PUBLIC_*` variables. Server-only values are read only in `src/lib/` and the API route, and never reach the browser.
+**One-time repository settings:**
 
----
+- **Settings → Pages → Build and deployment → Source:** set to **GitHub Actions**.
+- **Settings → Environments → github-pages → Deployment branches:** by default only the default branch may deploy. To deploy from `claude/sweet-maxwell-7o8ldw`, add it here; otherwise merge to `main`.
+- **Private repository:** Pages needs a paid GitHub plan, and the site is publicly reachable unless you use Enterprise Cloud's private Pages.
 
-## Contact form delivery (Resend)
+**Search engines:** this is a test deployment, so the workflow sets `VITE_NOINDEX=true`. Every page is `noindex` and robots.txt disallows crawling. Remove that line when the site should be indexed.
 
-Inquiries are emailed to the studio through [Resend](https://resend.com). The flow is:
-
-1. The browser validates input using the shared rules in `src/lib/contact/schema.ts`.
-2. `POST /api/contact` (`src/app/api/contact/route.server.ts`) runs these checks in order:
-   - same-origin
-   - JSON content type
-   - body size limit (16 KB)
-   - rate limit (5 per 10 minutes per hashed IP)
-   - honeypot field and plausible fill time
-   - server-side validation with per-field length limits
-3. `src/lib/contact/deliver.ts` sends the email. It includes the visitor's name, email, company, service interests, project description, timeline, website, preferred contact method and the submission timestamp. All user content is HTML-escaped, and the subject line is stripped of control characters.
-4. **Reply-To** is the visitor's address. **From** is always the configured sender, never the visitor's unverified address.
-5. Success is shown **only** when Resend returns a 2xx response:
-   - If Resend rejects the request or times out, the visitor sees an error and a pre-filled `mailto:` fallback.
-   - If delivery isn't configured, the API returns `503 not_configured`, and the contact page says so before anyone fills in the form.
-
-### Setup
-
-1. Create a Resend account and an API key. Set `RESEND_API_KEY` in the hosting provider (server-side only).
-2. `CONTACT_TO_EMAIL=michaelmlidesign@gmail.com` (this is also the default).
-3. **Development testing:** leave `CONTACT_FROM_EMAIL` empty and run `npm run dev`. Resend's test sender `onboarding@resend.dev` is used. Resend only delivers test-sender mail to the address that **owns the Resend account**, so this works only if that account is registered with the recipient address. To test a production build locally, set `CONTACT_ALLOW_TEST_SENDER=true`.
-4. **Before public launch:** verify a sender domain in Resend (DNS records). Then set, for example, `CONTACT_FROM_EMAIL="Frame & Flow Studio <inquiries@your-domain.com>"`. Production builds report "not configured" until a sender is set, and refuse to fall back to the test sender.
-5. Send a real test inquiry and confirm it arrives. Check the server logs for `contact.delivered` or `contact.delivery_failed` events.
+**How routes are served:** each route is written as its own HTML file (`about.html`, `work/independent-cafe.html` and so on), which GitHub Pages serves at the clean URL `/about`. Unknown paths get `404.html`, which renders the not-found page. No hash URLs or redirect tricks are needed.
 
 ---
 
-## Domain configuration
+## Configuration
 
-**No custom domain has been selected.** Nothing in the code assumes one. The production URL is resolved in `src/config/site.ts` in this order:
+Website settings are **public build-time** `VITE_*` variables: `.env.local` locally, and repository **Variables** (Settings → Secrets and variables → Actions) for the Pages workflow. **Never put secrets in a `VITE_*` variable**, because it's compiled into the public site. See `.env.example`.
 
-1. `NEXT_PUBLIC_SITE_URL`, when explicitly set.
-2. A production URL supplied by the host: `VERCEL_PROJECT_PRODUCTION_URL` on Vercel *production* deployments, or `URL` in Netlify's production context.
-3. Otherwise **none**. Canonical tags, sitemap entries, the robots `Sitemap:` line and absolute Open Graph URLs are omitted, rather than pointing at a guessed domain.
+| Variable | Purpose |
+| --- | --- |
+| `VITE_BASE_PATH` | Path the site is served under. Set by the workflow (`/business-website`). |
+| `VITE_SITE_URL` | Public URL used for canonical, sitemap and OG URLs. Set by the workflow. |
+| `VITE_NOINDEX` | `true` makes every page noindex and has robots.txt disallow crawling |
+| `VITE_CONTACT_ENDPOINT` | Contact form backend URL (see below). Empty = form not connected. |
+| `VITE_LINKEDIN_URL`, `VITE_INSTAGRAM_URL`, `VITE_GITHUB_URL` | Social links. Hidden unless they're valid https profile URLs. |
+| `VITE_BOOKING_URL` | Optional scheduling link on the contact page |
+| `VITE_PRIVACY_LAST_UPDATED`, `VITE_PRIVACY_REVIEWED` | Privacy policy date and review flag |
+| `VITE_HOSTING_PROVIDER` | Hosting provider named in the privacy policy |
 
-Relative metadata such as the OG image resolves against the deployment URL on previews, or `http://localhost:<PORT>` locally. That base is never used for canonical URLs. Preview deployments (Vercel/Netlify) are marked `noindex` and disallowed in robots.txt.
+The studio identity (name, founder, email, location, SEO text) lives in `src/config/identity.ts` and `src/config/site.ts`, not in environment variables.
 
-**Current status:** unresolved. Until a domain is chosen, the site has no canonical URLs or sitemap entries, unless it is deployed to a Vercel production environment, where the platform-provided domain is used.
+### Domain
 
-**When a domain is selected:**
+**No custom domain has been chosen.** The site currently uses the GitHub Pages address (`https://michaelli8899.github.io/business-website/`), provided by the workflow. When a domain is chosen:
 
-- [ ] Set `NEXT_PUBLIC_SITE_URL=https://your-domain` and redeploy. Canonical URLs, the sitemap, robots.txt and OG URLs all update automatically.
-- [ ] Check `/sitemap.xml`, `/robots.txt` and a page's `<link rel="canonical">`.
-- [ ] Verify the domain in Resend and update `CONTACT_FROM_EMAIL` to an address on it.
-- [ ] Update the privacy policy if hosting or providers changed.
+- [ ] Add it under **Settings → Pages → Custom domain** and configure DNS. The workflow then picks up the new base URL and base path automatically.
+- [ ] Remove `VITE_NOINDEX` from the workflow when ready to be indexed.
+- [ ] Verify the domain in Resend and update `CONTACT_FROM_EMAIL` and `ALLOWED_ORIGINS` on the contact function.
+
+---
+
+## Contact form delivery
+
+GitHub Pages only serves static files, and a browser app must never hold an email API key. So inquiries go to a **separate small backend**: `server/contact-handler.ts`.
+
+- **Not connected (current state):** `VITE_CONTACT_ENDPOINT` is empty. The contact page says online inquiries aren't connected yet. Submitting validates the form and then offers a pre-filled email to `michaelmlidesign@gmail.com`. **Nothing is sent and success is never simulated.**
+- **Connected:** the form POSTs JSON to `VITE_CONTACT_ENDPOINT`. Success is shown only when the backend returns `{ "ok": true }`. Errors, including the backend's own "not configured" response, show a message with the email fallback.
+
+### The Resend backend (`server/contact-handler.ts`)
+
+A portable Web-standard handler that exports `POST` and `OPTIONS` functions (`Request → Response`). It runs on Node serverless platforms such as Vercel Functions and Netlify Functions, with no framework required. For example, on Vercel, create `api/contact.ts` containing:
+
+```ts
+export { POST, OPTIONS } from "../server/contact-handler";
+```
+
+On each request, the handler:
+
+- allows only origins listed in `ALLOWED_ORIGINS` (CORS)
+- requires a JSON content type
+- limits the body to 16 KB
+- rate-limits each SHA-256-hashed IP to 5 submissions per 10 minutes (Upstash Redis if configured, otherwise in-memory)
+- checks the honeypot field and that the form wasn't filled implausibly fast or slowly
+- validates every field with the same schema as the form
+
+The notification email (`server/deliver.ts`) includes the name, email, company, service interests, description, timeline and submission timestamp. **Reply-To** is the visitor's address. **From** is always your verified sender. User content is HTML-escaped. Logs are structured JSON with no personal data.
+
+**Function environment variables** (set on the function host, never in the website build):
+
+| Variable | Purpose |
+| --- | --- |
+| `RESEND_API_KEY` | Resend API key |
+| `CONTACT_TO_EMAIL` | Recipient(s). Defaults to `michaelmlidesign@gmail.com`. |
+| `CONTACT_FROM_EMAIL` | Sender on a domain verified in Resend. Required in production. |
+| `CONTACT_ALLOW_TEST_SENDER` | `true` allows Resend's `onboarding@resend.dev` (testing only; it delivers only to the Resend account owner's address) |
+| `ALLOWED_ORIGINS` | Site origin(s), e.g. `https://michaelli8899.github.io` |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Shared rate limiter (recommended on serverless) |
+
+**To connect the form:**
+
+1. Deploy the function and set the variables above.
+2. Set the repository variable `VITE_CONTACT_ENDPOINT` to its URL.
+3. Re-run the Pages workflow.
+4. Send a test inquiry.
+
+If you use a different form service instead, it must accept JSON and return `{ "ok": true }`. Name that service in the privacy policy.
 
 ---
 
@@ -150,58 +193,13 @@ Relative metadata such as the OG image resolves against the deployment URL on pr
 
 | Area | Implementation |
 | --- | --- |
-| Input validation | Shared schema, enforced on the server. Allow-listed option values and length limits on every field. |
-| Body size | `Content-Length` checked before reading, and the actual byte length checked after (16 KB max) |
-| Spam | Hidden honeypot field, plus a minimum (3 s) and maximum (24 h) form fill time |
-| Rate limiting | 5 submissions per 10 minutes per client. IPs are SHA-256 hashed before use. |
-| Origin | Cross-origin POSTs rejected; JSON content type required |
-| Output | User content HTML-escaped in the notification email; subject line stripped of control characters |
-| Secrets | Read only server-side (`server-only` modules); never `NEXT_PUBLIC_`; `.env*` files are git-ignored |
-| Error monitoring | Structured JSON logs (`src/lib/log.ts`) for delivery, spam and rate-limit events, plus `onRequestError` in `src/instrumentation.ts` for every uncaught server error. No personal data is logged. |
+| Secrets | None in the website. Only public `VITE_*` values are compiled in. The Resend key lives only on the function host. |
+| Validation | Shared schema in the browser and on the server. Allow-listed options, length limits, control characters stripped from single-line fields. |
+| Spam and abuse | Honeypot field, fill-time window, rate limiting with hashed IPs, CORS origin allow-list, body size limit |
+| Output | HTML-escaped email content; sanitised subject line |
+| Monitoring | The function logs structured JSON (`server/log.ts`) for delivery, spam, rate-limit and origin events. Forward `logError()` to Sentry or similar if wanted. |
 
-**Rate limiting on serverless.** The in-memory fallback is per instance, so on Vercel/Netlify it is not a reliable limit by itself. Use one or both of:
-
-- **Upstash Redis (built in):** create a free Redis database at upstash.com and set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. The limiter then uses a shared fixed window and needs no extra dependency.
-- **Platform protection:** for example, a Vercel Firewall rate-limit rule on `POST /api/contact`, or the equivalent at your CDN/WAF.
-
-**Error monitoring.** Logs are visible in the hosting provider's log viewer; alert on `"level":"error"`. To use Sentry or similar, forward errors from `logError()` in `src/lib/log.ts` and from `onRequestError` in `src/instrumentation.ts`.
-
----
-
-## Deployment
-
-The site is a standard Next.js app. Every page is static. The only server code is `POST /api/contact` (`src/app/api/contact/route.server.ts`).
-
-- **Vercel:** import the repository, add the environment variables, and deploy.
-- **Other Node hosts:** run `npm ci && npm run build && npm start` (set `PORT` as needed).
-
-### GitHub Pages (static test deployment)
-
-`.github/workflows/deploy-pages.yml` builds a **static export** and deploys it to GitHub Pages on every push to `main` or `claude/sweet-maxwell-7o8ldw`, or on a manual run.
-
-- **Build mode:** `STATIC_EXPORT=true` outputs plain HTML to `out/`. The base path and site URL come from `actions/configure-pages`, for example `https://<user>.github.io/business-website`.
-- **No contact delivery:** Pages can't run the `/api/contact` route. Server-only route files use the `.server.ts` extension, which the static build leaves out. The form shows its "not connected" notice and offers a pre-filled email instead. It never sends or simulates a send.
-- **Kept out of search:** the test deployment sets `NEXT_PUBLIC_NOINDEX=true`, so pages are `noindex` and robots.txt disallows crawling. Remove that line to allow indexing.
-- **One-time setup:** in **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**.
-- **Branch rules:** the `github-pages` environment may only allow deployments from the default branch. To deploy from another branch, add it under **Settings → Environments → github-pages → Deployment branches**, or merge to `main`.
-- **Private repositories:** Pages needs a paid GitHub plan (Pro, Team or Enterprise). The published site is publicly reachable unless you use Enterprise Cloud's private Pages.
-
-Build the static export locally:
-
-```bash
-STATIC_EXPORT=true NEXT_PUBLIC_BASE_PATH=/business-website npm run build   # output in out/
-```
-
-For working inquiries, use the default build on a Node host such as Vercel.
-
-### Launch checklist
-
-- [ ] Configure Resend: `RESEND_API_KEY`, a verified sender domain, `CONTACT_FROM_EMAIL`. Then send a test inquiry and confirm it arrives.
-- [ ] Choose a domain and set `NEXT_PUBLIC_SITE_URL` (see *Domain configuration*)
-- [ ] Configure shared rate limiting (Upstash) and/or a platform firewall rule
-- [ ] **Owner/legal review of the privacy policy**, then set `NEXT_PUBLIC_PRIVACY_LAST_UPDATED` to the publication date and `NEXT_PUBLIC_PRIVACY_REVIEWED=true`
-- [ ] Add verified social profile URLs, if any
-- [ ] If analytics, cookies or new third-party services are added, update `/privacy` first
+On serverless hosts the in-memory rate limiter is per instance, so configure Upstash and/or a platform firewall rule for the function.
 
 ---
 
@@ -211,8 +209,8 @@ All copy lives in plain TypeScript files, so no CMS is needed.
 
 | To change… | Edit |
 | --- | --- |
-| Studio name, wordmark text, founder bio, email, location, SEO title/description | `src/config/site.ts` |
-| Social links, booking link, privacy date | Environment variables (see above) |
+| Studio name, email, location | `src/config/identity.ts` |
+| Founder bio, SEO title and description, tagline | `src/config/site.ts` |
 | Service cards, capability lists, AI principles | `src/data/services.ts` |
 | Process steps (homepage, websites, AI) | `src/data/process.ts` |
 | Managed vs self-managed options | `src/data/maintenance.ts` |
@@ -220,41 +218,53 @@ All copy lives in plain TypeScript files, so no CMS is needed.
 | About page principles and "what to expect" | `src/data/about.ts` |
 | Navigation and footer links | `src/data/navigation.ts` |
 | Contact form options | `src/lib/contact/schema.ts` |
+| Page titles and descriptions | The `<Seo>` element at the top of each file in `src/pages/` |
 
 ### Adding a portfolio project
 
-Add an entry to the `projects` array in `src/data/projects.ts`. Its page at `/work/<slug>` is generated automatically, and it appears in the grid, the filters, the sitemap and the related-projects lists.
+Add an entry to `projects` in `src/data/projects.ts`. Its page at `/work/<slug>` is created and prerendered automatically. It also appears in the grid, the filters, the sitemap and the related-projects lists.
 
-- `isConcept: true` adds the **Concept Project** label everywhere and frames outcomes as *intended*. Use `false` only for real client work.
-- `visual` picks one of the illustrated mockups. To use real screenshots instead, add `image: { src: "/work/my-project.jpg", alt: "…" }` with the file under `public/work/`. It is served through `next/image` and replaces the illustration.
-- `caseStudy.measuredResults` should only ever contain genuinely measured results from client work.
+- `isConcept: true` adds the **Concept Project** label and frames outcomes as *intended*. Use `false` only for real client work.
+- `visual` picks an illustrated mockup. To use a real screenshot, add `image: { src: "/work/my-project.jpg", alt: "…" }` and put the file in `public/work/`.
+- `caseStudy.measuredResults` should only contain genuinely measured results from client work.
 
 ### Updating branding
 
-- **Identity:** `src/config/site.ts`. The name, display name, founder, email, location and SEO copy are all defined here and flow through to the navigation, pages, metadata, structured data and email notifications.
-- **Logo and icons:** the wordmark **frame&flow.** and the monogram **f&f.** are Geist SemiBold outlined to SVG paths, in charcoal `#20231F`, ivory `#F7F7F2` and sage `#526B50` / `#B4C9AE`. To regenerate every asset after a design change:
+- **Identity:** `src/config/identity.ts` and `src/config/site.ts`
+- **Logo, icons and social image:** the wordmark **frame&flow.** and the monogram **f&f.** are Geist SemiBold converted to SVG paths. To regenerate all assets:
   ```bash
-  npm i --no-save opentype.js@1.3.4
+  npm i --no-save opentype.js@1.3.4 geist@1.9.2
   node scripts/generate-brand.cjs
   ```
-  This writes `src/components/layout/brand-glyphs.ts` (used by `<Logo>`), the files in `public/brand/` (wordmark, light, dark and monogram SVGs, plus 192 px and 512 px PNGs), `src/app/icon.svg`, `src/app/favicon.ico` and `src/app/apple-icon.png`. PNG/ICO output needs Playwright with Chromium; pass `--svg-only` to skip it.
-- **Colours and type:** edit the tokens in `src/app/globals.css` (`@theme`). Keep secondary text at 4.5:1 contrast or better against the background.
-- **Social image:** `src/app/og.png/route.tsx`
+  This writes `src/components/layout/brand-glyphs.ts`, `public/brand/*`, `public/icon.svg`, `public/favicon.ico`, `public/apple-touch-icon.png` and `public/og.png`. Raster output needs Playwright with Chromium; pass `--svg-only` to skip it.
+- **Colours and type:** the `@theme` tokens in `src/styles/globals.css`. Keep secondary text at 4.5:1 contrast or better.
+
+---
+
+## Launch checklist
+
+- [ ] Allow the deploy branch in the `github-pages` environment, or merge to `main`
+- [ ] Deploy the contact function and set `VITE_CONTACT_ENDPOINT`. Verify a Resend sender domain, then send a test inquiry.
+- [ ] **Owner/legal review of the privacy policy**, then set `VITE_PRIVACY_LAST_UPDATED` and `VITE_PRIVACY_REVIEWED=true`
+- [ ] Choose a domain, if any (see *Domain*), and remove `VITE_NOINDEX` when ready to be indexed
+- [ ] Add verified social profile URLs, if any
+- [ ] Update the privacy policy before adding analytics, cookies or new third-party services
 
 ---
 
 ## Accessibility & performance notes
 
 - Skip link, semantic landmarks, one `h1` per page, labelled navigation regions
-- The services dropdown supports click, hover, arrow keys and Escape, and returns focus to its button. The mobile menu locks scrolling, closes on Escape and moves focus into the menu.
-- FAQs use native `<details>`, which needs no JavaScript.
-- The form labels every field, links errors through `aria-describedby`, moves focus to the first invalid field, and announces status changes.
-- Scroll-reveal motion is progressive enhancement: content is visible without JavaScript, and all motion stops under `prefers-reduced-motion`. The workflow demo autoplays only when motion is allowed, has a pause button, and waits for the visitor at the human-review step.
-- Illustrations are inline SVG/HTML, so there are no image downloads and no layout shift.
+- On client-side navigation, the page scrolls to the top (or to the `#hash` target), focus moves to the main content, and the document title and metadata update.
+- The services dropdown supports click, hover, arrow keys and Escape. The mobile menu locks scrolling, closes on Escape and moves focus into the menu.
+- FAQs use native `<details>`.
+- The form labels every field, links errors through `aria-describedby`, focuses the first invalid field, and announces status changes.
+- Every page is prerendered, so content and metadata are present before JavaScript loads. Scroll-reveal motion is progressive enhancement and stops under `prefers-reduced-motion`.
+- Illustrations are inline SVG/HTML, so there are no image downloads and no layout shift. Fonts are self-hosted.
 
 ## Routine maintenance
 
-- **Monthly:** `npm outdated` and `npm audit`. Apply patch and minor updates, then `npm run check`.
+- **Monthly:** `npm outdated` and `npm audit`. Apply updates, then `npm run check`.
 - **After content edits:** `npm run check` before pushing.
-- **Quarterly:** send a test inquiry through the live form, check that social links work, and review the privacy policy date.
+- **Quarterly:** send a test inquiry, check that social links work, and review the privacy policy date.
 - **When adding integrations:** list any new data processors in the privacy policy.

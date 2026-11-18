@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
 import type { Project, ProjectVisualVariant } from "@/data/projects";
 import { cn } from "@/lib/cn";
+import { assetPath } from "@/config/site";
 
 /**
  * Illustrated interface mockups for concept projects.
@@ -47,7 +47,14 @@ export function ProjectVisual({
   if (image) {
     return (
       <div className={cn("relative aspect-[4/3] overflow-hidden", className)}>
-        <Image src={image.src} alt={image.alt} fill sizes={sizes} priority={priority} className="object-cover" />
+        <img
+          src={assetPath(image.src)}
+          alt={image.alt}
+          sizes={sizes}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
       </div>
     );
   }

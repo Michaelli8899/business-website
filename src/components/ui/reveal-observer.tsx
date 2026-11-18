@@ -1,11 +1,9 @@
-"use client";
-
-import { usePathname } from "next/navigation";
+import { useLocation } from "react-router";
 import { useEffect } from "react";
 
 /** Single IntersectionObserver that reveals every [data-reveal] element. */
 export function RevealObserver() {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
 
   useEffect(() => {
     const elements = Array.from(

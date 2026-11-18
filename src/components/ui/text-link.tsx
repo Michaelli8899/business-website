@@ -1,9 +1,9 @@
-import Link from "next/link";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { Link, type LinkProps } from "@/components/ui/link";
+import type { ReactNode } from "react";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-type Props = Omit<ComponentPropsWithoutRef<typeof Link>, "children"> & {
+type Props = Omit<LinkProps, "children"> & {
   children: ReactNode;
   icon?: "arrow" | "external" | "none";
   tone?: "default" | "inverse";

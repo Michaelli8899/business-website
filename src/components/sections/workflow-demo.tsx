@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import {
   Mail,

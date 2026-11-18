@@ -11,8 +11,12 @@ export type SocialLink = {
   href: string;
 };
 
+import { identity } from "./identity";
+
+const env = import.meta.env;
+
 /* ------------------------------------------------------------------ */
-/* Site URL resolution                                                 */
+/* URL helpers                                                         */
 /* ------------------------------------------------------------------ */
 
 function cleanUrl(value: string | undefined): string {
@@ -29,54 +33,24 @@ function cleanUrl(value: string | undefined): string {
 }
 
 /**
- * The public production URL, used for canonical URLs, the sitemap,
- * robots.txt and absolute Open Graph URLs.
- *
- * Resolution order:
- *  1. NEXT_PUBLIC_SITE_URL, when explicitly configured.
- *  2. A production URL supplied by the hosting platform
- *     (Vercel production deployments, Netlify production context).
- *  3. Otherwise empty — no canonical URLs or sitemap entries are emitted,
- *     so preview and local builds never advertise a fake production URL.
- *
- * No custom domain has been chosen yet; do not hardcode one here.
+ * The public site URL, used for canonical URLs, the sitemap, robots.txt and
+ * absolute Open Graph URLs. Set VITE_SITE_URL at build time (the GitHub
+ * Pages workflow sets it automatically). When empty, no canonical URLs or
+ * sitemap entries are generated — never a guessed domain.
  */
-function resolveSiteUrl(): string {
-  const explicit = cleanUrl(process.env.NEXT_PUBLIC_SITE_URL);
-  if (explicit) return explicit;
-  if (process.env.VERCEL_ENV === "production") {
-    const vercel = cleanUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL);
-    if (vercel) return vercel;
-  }
-  if (process.env.NETLIFY === "true" && process.env.CONTEXT === "production") {
-    const netlify = cleanUrl(process.env.URL);
-    if (netlify) return netlify;
-  }
-  return "";
-}
+const siteUrl = cleanUrl(env.VITE_SITE_URL);
 
-/**
- * Base URL for resolving relative metadata (e.g. Open Graph images) when no
- * production URL is known: the deployment's own URL on preview builds, or
- * localhost during `next dev`. Empty otherwise. Never used for canonical URLs.
- */
-function resolveMetadataBase(siteUrl: string): string {
-  if (siteUrl) return siteUrl;
-  const deployment = cleanUrl(process.env.VERCEL_URL) || cleanUrl(process.env.DEPLOY_PRIME_URL);
-  if (deployment) return deployment;
-  if (process.env.NODE_ENV === "development") return `http://localhost:${process.env.PORT || 3000}`;
-  // Unknown production host: emit no absolute metadata URLs rather than a fake one.
-  return "";
-}
+/** Base path the app is served under, from Vite's `base` (e.g. "/business-website"). */
+const basePath = (env.BASE_URL || "/").replace(/\/+$/, "");
 
 /* ------------------------------------------------------------------ */
 /* Social links                                                        */
 /* ------------------------------------------------------------------ */
 
 const socialSources: { label: string; env: string | undefined; hosts: string[] }[] = [
-  { label: "LinkedIn", env: process.env.NEXT_PUBLIC_LINKEDIN_URL, hosts: ["linkedin.com"] },
-  { label: "Instagram", env: process.env.NEXT_PUBLIC_INSTAGRAM_URL, hosts: ["instagram.com"] },
-  { label: "GitHub", env: process.env.NEXT_PUBLIC_GITHUB_URL, hosts: ["github.com"] },
+  { label: "LinkedIn", env: env.VITE_LINKEDIN_URL, hosts: ["linkedin.com"] },
+  { label: "Instagram", env: env.VITE_INSTAGRAM_URL, hosts: ["instagram.com"] },
+  { label: "GitHub", env: env.VITE_GITHUB_URL, hosts: ["github.com"] },
 ];
 
 /**
@@ -101,15 +75,13 @@ function validSocialLinks(): SocialLink[] {
 
 /* ------------------------------------------------------------------ */
 
-const siteUrl = resolveSiteUrl();
-
 export const siteConfig = {
   /** Full legal-style trading name used in metadata, policy and emails. */
-  name: "Frame & Flow Studio",
+  name: identity.name,
   /** Short display name for tight spaces. */
-  displayName: "Frame & Flow",
+  displayName: identity.displayName,
   /** Lowercase wordmark text (rendered as an SVG logo). */
-  wordmark: "frame&flow.",
+  wordmark: identity.wordmark,
   tagline: "Better websites. Smarter businesses.",
   description:
     "Frame & Flow Studio is an independent digital solutions studio specializing in website design, development, deployment, and practical AI-powered business automation.",
@@ -123,25 +95,15 @@ export const siteConfig = {
       "Thoughtful website design, development, and practical AI automation for small businesses. Built to help you grow, simplify operations, and stay in control.",
   },
 
-  /** Production URL — empty until one is configured (see resolveSiteUrl). */
+  /** Public site URL — empty until configured (VITE_SITE_URL). */
   url: siteUrl,
-  /** Base for resolving relative metadata URLs. Never used for canonicals. */
-  metadataBase: resolveMetadataBase(siteUrl),
+  /** Base path the site is served under. Empty on a root domain. */
+  basePath,
   /**
-   * Base path the site is served under (static export on GitHub Pages
-   * project sites, e.g. "/business-website"). Empty on a root domain.
+   * Keep the site out of search engines (noindex + robots disallow), e.g.
+   * for the GitHub Pages test deployment. Set VITE_NOINDEX=true.
    */
-  basePath: (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/+$/, ""),
-  /** Static HTML export (GitHub Pages): no server routes, no form delivery. */
-  isStaticExport: process.env.STATIC_EXPORT === "true",
-  /**
-   * Keep the site out of search engines: preview deployments, or any build
-   * with NEXT_PUBLIC_NOINDEX=true (e.g. the GitHub Pages test deployment).
-   */
-  noindex:
-    process.env.NEXT_PUBLIC_NOINDEX === "true" ||
-    process.env.VERCEL_ENV === "preview" ||
-    (process.env.NETLIFY === "true" && !!process.env.CONTEXT && process.env.CONTEXT !== "production"),
+  noindex: env.VITE_NOINDEX === "true",
 
   founder: {
     name: "Michael Li",
@@ -159,9 +121,9 @@ export const siteConfig = {
 
   contact: {
     /** Public business email — used for mailto links and inquiry notifications. */
-    email: "michaelmlidesign@gmail.com",
+    email: identity.email,
     /** Set to an empty string to hide the location. */
-    location: "Dallas, Texas, United States",
+    location: identity.location,
     address: {
       locality: "Dallas",
       region: "TX",
@@ -171,12 +133,20 @@ export const siteConfig = {
      * Optional scheduling link (Cal.com, Calendly, etc.). When set, a
      * "Book a discovery call" option appears on the contact page.
      */
-    bookingUrl: cleanUrl(process.env.NEXT_PUBLIC_BOOKING_URL) ? process.env.NEXT_PUBLIC_BOOKING_URL!.trim() : "",
+    bookingUrl: cleanUrl(env.VITE_BOOKING_URL) ? env.VITE_BOOKING_URL!.trim() : "",
+    /**
+     * Where the contact form POSTs inquiries (VITE_CONTACT_ENDPOINT). A static
+     * site can't hold an email API key, so delivery needs a small backend —
+     * e.g. server/contact-handler.ts deployed as a serverless function.
+     * When empty, the form shows a "not connected" notice and an email
+     * fallback, and never submits.
+     */
+    endpoint: cleanUrl(env.VITE_CONTACT_ENDPOINT) ? env.VITE_CONTACT_ENDPOINT!.trim() : "",
   },
 
   /**
-   * Verified social profiles only. Configure with NEXT_PUBLIC_LINKEDIN_URL,
-   * NEXT_PUBLIC_INSTAGRAM_URL and NEXT_PUBLIC_GITHUB_URL — links appear
+   * Verified social profiles only. Configure with VITE_LINKEDIN_URL,
+   * VITE_INSTAGRAM_URL and VITE_GITHUB_URL — links appear
    * automatically once a valid profile URL is provided.
    */
   social: validSocialLinks(),
@@ -186,12 +156,14 @@ export const siteConfig = {
      * Shown on the privacy page. Set to the actual publication date at
      * launch, and update whenever the policy changes.
      */
-    lastUpdated: process.env.NEXT_PUBLIC_PRIVACY_LAST_UPDATED || "",
+    lastUpdated: env.VITE_PRIVACY_LAST_UPDATED || "",
     /**
      * Flip to true once the owner (and ideally a legal professional) has
      * reviewed the policy. Until then, the page shows a review notice.
      */
-    reviewed: process.env.NEXT_PUBLIC_PRIVACY_REVIEWED === "true",
+    reviewed: env.VITE_PRIVACY_REVIEWED === "true",
+    /** Hosting provider named in the privacy policy. */
+    hostingProvider: env.VITE_HOSTING_PROVIDER || "GitHub Pages, a service of GitHub, Inc.",
   },
 } as const;
 
@@ -207,7 +179,7 @@ export function absoluteUrl(path = "/"): string {
   return `${siteConfig.url}${clean === "/" ? "/" : clean}`;
 }
 
-/** Prefixes a root-relative path with the base path (for non-<Link> URLs). */
+/** Prefixes a root-relative path with the base path (for non-router URLs such as assets). */
 export function assetPath(path: string): string {
   return `${siteConfig.basePath}${path}`;
 }

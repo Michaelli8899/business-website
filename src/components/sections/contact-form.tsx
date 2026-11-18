@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "@/components/ui/link";
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AlertCircle, CheckCircle2, Info, Mail } from "lucide-react";
 import {
@@ -130,9 +128,9 @@ export function ContactForm({
     setStatus({ state: "submitting" });
 
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch(siteConfig.contact.endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ ...raw, startedAt: startedAt.current }),
       });
       const data = (await res.json().catch(() => null)) as ContactResponse | null;
