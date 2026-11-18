@@ -5,7 +5,8 @@
  * URL (/work/[slug]); the page is prerendered automatically.
  *
  * Honesty rules:
- *  - `engagement` must describe how the work was actually done.
+ *  - `engagement` must describe how the work was actually done
+ *    (client, academic, personal or concept).
  *  - `caseStudy.goals` are what the work set out to achieve — never phrase
  *    them as results.
  *  - Only fill `caseStudy.measuredResults` with genuinely measured outcomes.
@@ -17,11 +18,12 @@
 
 export type ProjectCategory = "websites" | "ai";
 
-export type Engagement = "client" | "academic" | "concept";
+export type Engagement = "client" | "academic" | "personal" | "concept";
 
 export const engagementLabels: Record<Engagement, string> = {
   client: "Client Project",
   academic: "Academic Project",
+  personal: "Personal Project",
   concept: "Concept Project",
 };
 
@@ -159,6 +161,100 @@ export const projects: Project[] = [
       ],
       technology: ["WordPress", "Fortunato theme (CrestaProject)", "Responsive design"],
       capabilities: ["Visual & UX design", "Information architecture", "WordPress development", "Component documentation", "Handover"],
+    },
+  },
+  {
+    slug: "michael-li-portfolio",
+    title: "Michael Li — Product Design Portfolio",
+    category: "websites",
+    type: "Portfolio Website · Design & Development",
+    engagement: "personal",
+    summary:
+      "A personal portfolio for product design and AI product management work — an interactive, editorial site with an explorable hero, scannable project summaries, structured case studies and a creative playground.",
+    scope: ["Visual & interaction design", "Content structure", "Front-end development", "Responsive design"],
+    image: {
+      src: "/work/michaelmli/home.webp",
+      alt: "Portfolio homepage: the oversized headline “Designing what’s next.” surrounded by scattered, draggable cards — a role statement, a portrait, a project preview and short monospace notes.",
+      width: 1600,
+      height: 1000,
+    },
+    liveUrl: "https://www.michaelmli.com/",
+    caseStudy: {
+      overview:
+        "michaelmli.com is the personal portfolio for Michael Li's work as a product designer and AI product manager. It presents a set of in-depth product case studies, a Creative Playground for architecture, photography and visual studies, and an About page connecting HCI, business and code.",
+      challenge:
+        "A portfolio has to show range — research, interaction design, product thinking and hands-on prototyping — without losing a clear point of view. Visitors often skim quickly, so each project needs to communicate the role, timeline and focus at a glance, while still offering depth for people who want the full story.",
+      approach: [
+        {
+          title: "An explorable first impression",
+          description:
+            "The homepage opens with an oversized headline surrounded by draggable “fragments” — a role statement, a portrait, a project preview and short notes — inviting visitors to interact before they scroll.",
+        },
+        {
+          title: "An editorial type system",
+          description:
+            "A heavy grotesk for headlines, a serif for the personal voice and monospace for annotations create clear hierarchy and a distinctive tone.",
+        },
+        {
+          title: "Scannable project summaries",
+          description:
+            "Each project leads with full-bleed imagery, a one-line outcome, a short description, the role, timeline and topic tags, with a direct link to the case study.",
+        },
+        {
+          title: "Depth on demand",
+          description:
+            "Case studies open with a TL;DR — problem, product move, final design and why it matters — before the detailed process, so readers choose how deep to go.",
+        },
+      ],
+      solution: [
+        {
+          title: "Interactive hero",
+          description: "Draggable cards around the headline on desktop, re-flowing into a tidy grid on phones.",
+        },
+        {
+          title: "Selected work",
+          description: "Four product case studies, each introduced with imagery, role, timeline and tags.",
+        },
+        {
+          title: "Structured case studies",
+          description: "A consistent template with project context, team, tools, a TL;DR and the full design process.",
+        },
+        {
+          title: "Creative Playground",
+          description: "A separate space for architecture, photography and visual studies that sits alongside the product work.",
+        },
+        {
+          title: "About & contact",
+          description: "A concise professional path with personal texture, and clear calls to start a conversation.",
+        },
+      ],
+      gallery: [
+        {
+          image: { src: "/work/michaelmli/work.webp", alt: "Selected work section: a full-bleed Noteful project image with the project title, outcome, description, role, timeline, tags and a View case study link.", width: 1600, height: 1000 },
+          caption: "Full-bleed project summaries in Selected work.",
+        },
+        {
+          image: { src: "/work/michaelmli/case.webp", alt: "Case study header for Noteful with a project label, large title, outcome line and topic tags above a hero image of the app.", width: 1600, height: 1000 },
+          caption: "Case study template opening.",
+        },
+        {
+          image: { src: "/work/michaelmli/playground.webp", alt: "Creative Playground page with a large headline and a short introduction to architecture, photography and visual studies.", width: 1600, height: 1000 },
+          caption: "Creative Playground for visual and spatial work.",
+        },
+        {
+          image: { src: "/work/michaelmli/mobile.webp", alt: "Mobile homepage with the headline stacked and the hero cards arranged in a grid.", width: 780, height: 1688 },
+          caption: "On phones, the hero fragments re-flow into a grid.",
+          device: "mobile",
+        },
+      ],
+      goals: [
+        "Communicate role, focus and impact within seconds of landing.",
+        "Let visitors choose between a quick scan and a deep read.",
+        "Show creative range alongside product work without diluting it.",
+        "Leave a distinctive, personal impression.",
+      ],
+      technology: ["Vite", "Single-page application", "Responsive design"],
+      capabilities: ["Visual design", "Interaction design", "Content structure", "Front-end development"],
     },
   },
 ];
