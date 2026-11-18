@@ -2,8 +2,9 @@ import { Calendar, Mail, MapPin } from "lucide-react";
 import { createMetadata } from "@/lib/metadata";
 import { siteConfig } from "@/config/site";
 import { isContactConfigured } from "@/lib/contact/deliver";
-import { serviceOptions, type ServiceValue } from "@/lib/contact/schema";
+import { Suspense } from "react";
 import { ContactForm } from "@/components/sections/contact-form";
+import { ContactFormWithParams } from "@/components/sections/contact-form-with-params";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Reveal } from "@/components/ui/reveal";
@@ -20,10 +21,9 @@ const nextSteps = [
   "You'll receive a written proposal with scope and timeline.",
 ];
 
-export default async function ContactPage({ searchParams }: PageProps<"/contact">) {
-  const params = await searchParams;
-  const requested = ([] as string[]).concat(params.service ?? []);
-  const initialServices = requested.filter((s): s is ServiceValue => serviceOptions.some((o) => o.value === s));
+export default function ContactPage() {
+  // Delivery needs the server API route, which a static export doesn't have.
+  const configured = !siteConfig.isStaticExport && isContactConfigured();
   const { email, location, bookingUrl } = siteConfig.contact;
 
   return (
@@ -79,7 +79,10 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
 
           <Reveal delay={80} className="col-span-full lg:col-span-7 lg:col-start-6">
             <div className="rounded-lg border border-line bg-surface p-6 md:p-10">
-              <ContactForm configured={isContactConfigured()} initialServices={initialServices} />
+              {/* ?service= pre-selection is read in the browser so the page stays static. */}
+              <Suspense fallback={<ContactForm configured={configured} />}>
+                <ContactFormWithParams configured={configured} />
+              </Suspense>
             </div>
           </Reveal>
         </div>

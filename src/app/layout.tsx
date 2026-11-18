@@ -24,8 +24,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: ogImages(),
   },
-  // Keep preview deployments out of search results.
-  robots: siteConfig.isPreviewDeployment ? { index: false, follow: false } : undefined,
+  // Keep preview/test deployments out of search results.
+  robots: siteConfig.noindex ? { index: false, follow: false } : undefined,
   formatDetection: { telephone: false, email: false, address: false },
 };
 

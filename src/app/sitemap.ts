@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl, siteConfig } from "@/config/site";
 import { projects } from "@/data/projects";
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   if (!siteConfig.url) return [];
   const staticRoutes = ["/", "/services/websites", "/services/ai", "/work", "/about", "/contact", "/privacy"];

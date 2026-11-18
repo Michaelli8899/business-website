@@ -21,7 +21,8 @@ function cleanUrl(value: string | undefined): string {
     const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
     if (!/^https?:$/.test(url.protocol)) return "";
     if (!url.hostname.includes(".") && url.hostname !== "localhost") return "";
-    return url.origin;
+    // Keep any sub-path (e.g. GitHub Pages project sites: /business-website).
+    return `${url.origin}${url.pathname.replace(/\/+$/, "")}`;
   } catch {
     return "";
   }
@@ -126,8 +127,19 @@ export const siteConfig = {
   url: siteUrl,
   /** Base for resolving relative metadata URLs. Never used for canonicals. */
   metadataBase: resolveMetadataBase(siteUrl),
-  /** True only on Vercel/Netlify preview deployments. */
-  isPreviewDeployment:
+  /**
+   * Base path the site is served under (static export on GitHub Pages
+   * project sites, e.g. "/business-website"). Empty on a root domain.
+   */
+  basePath: (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/+$/, ""),
+  /** Static HTML export (GitHub Pages): no server routes, no form delivery. */
+  isStaticExport: process.env.STATIC_EXPORT === "true",
+  /**
+   * Keep the site out of search engines: preview deployments, or any build
+   * with NEXT_PUBLIC_NOINDEX=true (e.g. the GitHub Pages test deployment).
+   */
+  noindex:
+    process.env.NEXT_PUBLIC_NOINDEX === "true" ||
     process.env.VERCEL_ENV === "preview" ||
     (process.env.NETLIFY === "true" && !!process.env.CONTEXT && process.env.CONTEXT !== "production"),
 
@@ -185,8 +197,17 @@ export const siteConfig = {
 
 export type SiteConfig = typeof siteConfig;
 
-/** Absolute URL helper. Returns the relative path when no site URL is set. */
+/**
+ * Absolute URL helper. Joins onto the site URL, keeping any sub-path.
+ * Returns the base-path-prefixed relative path when no site URL is set.
+ */
 export function absoluteUrl(path = "/"): string {
-  if (!siteConfig.url) return path;
-  return new URL(path, siteConfig.url).toString();
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  if (!siteConfig.url) return assetPath(clean);
+  return `${siteConfig.url}${clean === "/" ? "/" : clean}`;
+}
+
+/** Prefixes a root-relative path with the base path (for non-<Link> URLs). */
+export function assetPath(path: string): string {
+  return `${siteConfig.basePath}${path}`;
 }

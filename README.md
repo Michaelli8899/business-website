@@ -41,7 +41,7 @@ npm run dev                  # http://localhost:3000
 | `/about`             | About the studio and founder                            |
 | `/contact`           | Project inquiry form. `?service=new-website` pre-selects a service |
 | `/privacy`           | Privacy policy (template)                               |
-| `/api/contact`       | Contact form endpoint (POST)                            |
+| `/api/contact`       | Contact form endpoint (POST). Server builds only; absent from the static Pages export |
 | `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`, `/og.png` | Generated SEO assets (`og.png` is referenced in metadata only when an absolute URL is known) |
 
 ---
@@ -102,7 +102,7 @@ See `.env.example`. Nothing is required to run the site locally. Studio identity
 Inquiries are emailed to the studio through [Resend](https://resend.com). The flow is:
 
 1. The browser validates input using the shared rules in `src/lib/contact/schema.ts`.
-2. `POST /api/contact` (`src/app/api/contact/route.ts`) runs these checks in order:
+2. `POST /api/contact` (`src/app/api/contact/route.server.ts`) runs these checks in order:
    - same-origin
    - JSON content type
    - body size limit (16 KB)
@@ -170,10 +170,29 @@ Relative metadata such as the OG image resolves against the deployment URL on pr
 
 ## Deployment
 
-The site is a standard Next.js app. Every page is static except `/contact`, which reads the `?service=` query, and `/api/contact`.
+The site is a standard Next.js app. Every page is static. The only server code is `POST /api/contact` (`src/app/api/contact/route.server.ts`).
 
 - **Vercel:** import the repository, add the environment variables, and deploy.
 - **Other Node hosts:** run `npm ci && npm run build && npm start` (set `PORT` as needed).
+
+### GitHub Pages (static test deployment)
+
+`.github/workflows/deploy-pages.yml` builds a **static export** and deploys it to GitHub Pages on every push to `main` or `claude/sweet-maxwell-7o8ldw`, or on a manual run.
+
+- **Build mode:** `STATIC_EXPORT=true` outputs plain HTML to `out/`. The base path and site URL come from `actions/configure-pages`, for example `https://<user>.github.io/business-website`.
+- **No contact delivery:** Pages can't run the `/api/contact` route. Server-only route files use the `.server.ts` extension, which the static build leaves out. The form shows its "not connected" notice and offers a pre-filled email instead. It never sends or simulates a send.
+- **Kept out of search:** the test deployment sets `NEXT_PUBLIC_NOINDEX=true`, so pages are `noindex` and robots.txt disallows crawling. Remove that line to allow indexing.
+- **One-time setup:** in **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**.
+- **Branch rules:** the `github-pages` environment may only allow deployments from the default branch. To deploy from another branch, add it under **Settings → Environments → github-pages → Deployment branches**, or merge to `main`.
+- **Private repositories:** Pages needs a paid GitHub plan (Pro, Team or Enterprise). The published site is publicly reachable unless you use Enterprise Cloud's private Pages.
+
+Build the static export locally:
+
+```bash
+STATIC_EXPORT=true NEXT_PUBLIC_BASE_PATH=/business-website npm run build   # output in out/
+```
+
+For working inquiries, use the default build on a Node host such as Vercel.
 
 ### Launch checklist
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AlertCircle, CheckCircle2, Info, Mail } from "lucide-react";
 import {
@@ -113,6 +114,19 @@ export function ContactForm({
       return;
     }
     setErrors({});
+
+    // No delivery backend (unconfigured, or a static deployment such as
+    // GitHub Pages): never attempt or simulate a send — offer email instead.
+    if (!configured) {
+      setStatus({
+        state: "error",
+        code: "not_configured",
+        message: `Online inquiries aren't connected yet, so your message was not sent. Please email ${siteConfig.contact.email} instead.`,
+        mailto: mailtoFallback(),
+      });
+      return;
+    }
+
     setStatus({ state: "submitting" });
 
     try {
@@ -365,9 +379,9 @@ export function ContactForm({
         <p id="form-note" className="max-w-md text-sm text-ink-soft">
           Fields marked <span className="text-accent">*</span> are required. Your details are only used to respond to your
           inquiry — see the{" "}
-          <a href="/privacy" className="text-ink underline underline-offset-4">
+          <Link href="/privacy" className="text-ink underline underline-offset-4">
             privacy policy
-          </a>
+          </Link>
           .
         </p>
         <Button type="submit" size="lg" arrow loading={status.state === "submitting"} loadingLabel="Sending…" className="shrink-0">
