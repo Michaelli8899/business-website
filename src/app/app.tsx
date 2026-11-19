@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/footer";
 import { RevealObserver } from "@/components/ui/reveal-observer";
 import { ScrollManager } from "./scroll-manager";
 import HomePage from "@/pages/home";
+import UxDesignPage from "@/pages/services-ux";
 import WebsitesPage from "@/pages/services-websites";
 import AiPage from "@/pages/services-ai";
 import WorkPage from "@/pages/work";
@@ -26,6 +27,7 @@ export function App() {
       <main id="main" tabIndex={-1} className="flex-1 outline-none">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/services/ux-design" element={<UxDesignPage />} />
           <Route path="/services/websites" element={<WebsitesPage />} />
           <Route path="/services/ai" element={<AiPage />} />
           <Route path="/work" element={<WorkPage />} />

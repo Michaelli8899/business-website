@@ -4,6 +4,7 @@
  */
 
 export const serviceOptions = [
+  { value: "ux-design", label: "UI/UX design" },
   { value: "new-website", label: "New website" },
   { value: "website-redesign", label: "Website redesign" },
   { value: "ai-automation", label: "AI & workflow automation" },

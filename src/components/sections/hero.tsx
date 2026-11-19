@@ -41,7 +41,7 @@ export function Hero() {
 
       <div className="container-site">
         <ul className="grid grid-cols-2 border-t border-line text-sm text-ink-soft md:grid-cols-4">
-          {["Design & development", "AI & automation", "Client-owned accounts", "Founder-led, direct communication"].map(
+          {["UI/UX & web design", "AI & automation", "Client-owned accounts", "Founder-led, direct communication"].map(
             (item, i) => (
               <li
                 key={item}

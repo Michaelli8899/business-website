@@ -10,6 +10,11 @@ export type NavItem = NavLink & {
 
 export const servicesNav: NavLink[] = [
   {
+    label: "UI/UX Design",
+    href: "/services/ux-design",
+    description: "Research-led interface and experience design.",
+  },
+  {
     label: "Website Solutions",
     href: "/services/websites",
     description: "Design, development, deployment and care.",
@@ -22,7 +27,7 @@ export const servicesNav: NavLink[] = [
 ];
 
 export const mainNav: NavItem[] = [
-  { label: "Services", href: "/services/websites", children: servicesNav },
+  { label: "Services", href: "/services/ux-design", children: servicesNav },
   { label: "Work", href: "/work" },
   { label: "About", href: "/about" },
 ];

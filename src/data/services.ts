@@ -1,5 +1,5 @@
 export type ServiceSummary = {
-  id: "websites" | "ai";
+  id: "ux" | "websites" | "ai";
   index: string;
   title: string;
   description: string;
@@ -10,8 +10,24 @@ export type ServiceSummary = {
 /** Homepage service overview cards. */
 export const serviceSummaries: ServiceSummary[] = [
   {
-    id: "websites",
+    id: "ux",
     index: "01",
+    title: "UI/UX Design",
+    description:
+      "Research-led interface and experience design for apps, websites and digital products — so people can understand, use and enjoy what you build.",
+    capabilities: [
+      "User research",
+      "Usability testing",
+      "Information architecture",
+      "Interaction design",
+      "Prototyping",
+      "Design systems",
+    ],
+    cta: { label: "Explore UI/UX design", href: "/services/ux-design" },
+  },
+  {
+    id: "websites",
+    index: "02",
     title: "Website Design & Development",
     description:
       "Thoughtfully designed websites that help businesses establish credibility, connect with customers, and turn visitors into opportunities.",
@@ -27,7 +43,7 @@ export const serviceSummaries: ServiceSummary[] = [
   },
   {
     id: "ai",
-    index: "02",
+    index: "03",
     title: "AI & Business Automation",
     description:
       "Practical, intelligent systems that reduce repetitive work, connect your existing tools, and simplify daily operations.",
@@ -50,6 +66,45 @@ export type Capability = {
   /** Label shown above the list, e.g. "Examples". */
   itemsLabel?: string;
 };
+
+export const uxCapabilities: Capability[] = [
+  {
+    title: "Research & Discovery",
+    description: "Understand how people actually use your product today.",
+    items: [
+      "User interviews",
+      "Think-aloud usability testing",
+      "Heuristic evaluation",
+      "Competitive analysis",
+      "Journey mapping",
+    ],
+  },
+  {
+    title: "Information Architecture",
+    description: "Structure content and features so people find what they need.",
+    items: ["Sitemaps & navigation", "Content structure", "User & task flows", "Audience-based organization"],
+  },
+  {
+    title: "Interaction Design & Prototyping",
+    description: "Explore and refine how the experience works before it is built.",
+    items: ["Sketching & wireframes", "Interactive Figma prototypes", "Motion prototypes", "Feedback & error states"],
+  },
+  {
+    title: "UI Design",
+    description: "Clear, consistent interfaces that reflect your brand.",
+    items: ["Visual interface design", "Responsive & mobile UI", "Accessibility fundamentals", "Brand-consistent styling"],
+  },
+  {
+    title: "Design Systems",
+    description: "Reusable foundations that keep products consistent as they grow.",
+    items: ["Component libraries", "Design tokens", "Usage documentation", "Developer handoff"],
+  },
+  {
+    title: "Validation & Iteration",
+    description: "Evidence, not guesswork, behind design decisions.",
+    items: ["Rounds of usability testing", "Before-and-after comparisons", "Prioritized recommendations", "Iteration on findings"],
+  },
+];
 
 export const websiteCapabilities: Capability[] = [
   {

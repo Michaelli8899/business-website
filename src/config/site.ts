@@ -84,15 +84,15 @@ export const siteConfig = {
   wordmark: identity.wordmark,
   tagline: "Better websites. Smarter businesses.",
   description:
-    "Frame & Flow Studio is an independent digital solutions studio specializing in website design, development, deployment, and practical AI-powered business automation.",
+    "Frame & Flow Studio is an independent digital solutions studio specializing in UI/UX design, website design and development, and practical AI-powered business automation.",
   /** Positioning line used in the footer. */
   positioning:
-    "An independent digital solutions studio for website design, development and practical AI-powered business automation.",
+    "An independent digital solutions studio for UI/UX design, websites and practical AI-powered business automation.",
 
   seo: {
-    title: "Frame & Flow Studio | Websites & Business Automation",
+    title: "Frame & Flow Studio | UI/UX Design, Websites & Business Automation",
     description:
-      "Thoughtful website design, development, and practical AI automation for small businesses. Built to help you grow, simplify operations, and stay in control.",
+      "Research-led UI/UX design, thoughtful websites, and practical AI automation for small businesses. Built to help you grow, simplify operations, and stay in control.",
   },
 
   /** Public site URL — empty until configured (VITE_SITE_URL). */

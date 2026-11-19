@@ -60,7 +60,7 @@ export default function WebsitesPage() {
                 <EngagementBadge engagement={featured.engagement} className="absolute left-4 top-4" />
               </Link>
               <figcaption className="mt-3 text-sm text-ink-soft">
-                {featured.title} — {featured.type.toLowerCase()}
+                {featured.title} · {featured.type}
               </figcaption>
             </figure>
           )

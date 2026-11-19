@@ -31,6 +31,33 @@ export const studioProcess: ProcessStep[] = [
   },
 ];
 
+export const uxProcess: ProcessStep[] = [
+  {
+    number: "01",
+    title: "Research",
+    description:
+      "Learn how people use the product today through interviews, usability testing and a review of the existing experience.",
+  },
+  {
+    number: "02",
+    title: "Define",
+    description:
+      "Turn findings into clear insights, priorities, information architecture and the key flows to design.",
+  },
+  {
+    number: "03",
+    title: "Design",
+    description:
+      "Sketch, wireframe and prototype, moving from structure to polished interface design in regular reviews.",
+  },
+  {
+    number: "04",
+    title: "Validate",
+    description:
+      "Test with real users, iterate on what you learn, and hand off documented designs and components.",
+  },
+];
+
 export const websiteProcess: ProcessStep[] = [
   {
     number: "01",

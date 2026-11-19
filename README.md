@@ -2,7 +2,7 @@
 
 **frame&flow.** — *Better websites. Smarter businesses.*
 
-Marketing website for **Frame & Flow Studio**, an independent digital solutions studio in Dallas, Texas, founded by Michael Li. It covers two services: **Website Design & Development** and **AI & Business Automation**.
+Marketing website for **Frame & Flow Studio**, an independent digital solutions studio in Dallas, Texas, founded by Michael Li. It covers three services: **UI/UX Design**, **Website Design & Development** and **AI & Business Automation**.
 
 A **React** single-page app built with **Vite**, **TypeScript**, **React Router**, **Tailwind CSS 4** and **Lucide** icons, using the self-hosted **Geist** typeface. At build time, every route is **prerendered to static HTML**, so pages load fast, are crawlable and carry correct metadata. React then hydrates them in the browser. It deploys to **GitHub Pages**.
 
@@ -41,6 +41,7 @@ Then open http://localhost:4173/business-website/.
 | Route                | Page                                                  |
 | -------------------- | ----------------------------------------------------- |
 | `/`                  | Homepage                                              |
+| `/services/ux-design` | UI/UX Design                                         |
 | `/services/websites` | Website Solutions                                     |
 | `/services/ai`       | AI & Automation, with the interactive workflow demo   |
 | `/work`              | Portfolio (category filters appear with more than one category) |
@@ -225,7 +226,7 @@ All copy lives in plain TypeScript files, so no CMS is needed.
 Add an entry to `projects` in `src/data/projects.ts`. Its page at `/work/<slug>` is created and prerendered automatically. It also appears in the Work page, the sitemap, the matching service page and related-project lists.
 
 - **`engagement`** must describe how the work was actually done: `"client"`, `"internship"`, `"academic"`, `"personal"` or `"concept"`. It is shown as a badge everywhere.
-- **`category`** is `"websites"`, `"ai"` or `"product"`. It drives the Work page filters and which service page lists the project.
+- **`category`** is `"ux"`, `"websites"` or `"ai"`. It drives the Work page filters and which service page lists the project.
 - **Credits:** `role`, `team` and `timeline` (optional) appear in the case-study header. Always credit team work.
 - **Links:** `liveUrl` adds "Visit the live site" (also shown on cards). `sourceUrl` links to a fuller write-up, such as the original case study on michaelmli.com. `note` shows a clarification such as "Not affiliated with…".
 - **Images:** put screenshots in `public/work/<slug>/`. WebP around 1600 px wide suits desktop shots. List each image with its `alt`, `width` and `height`; the dimensions prevent layout shift. Add `focus` (a CSS object-position such as `"70% 50%"`) to keep the important part visible when a wide cover is cropped on cards. Gallery items with `device: "mobile"` are shown in a phone-sized frame.

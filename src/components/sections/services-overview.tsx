@@ -11,9 +11,9 @@ export function ServicesOverview() {
           id="services-title"
           eyebrow="What we do"
           title="Digital solutions built around your business."
-          description="Two disciplines under one roof — so your website and the systems behind it are designed to work together."
+          description="Three disciplines under one roof — research-led design, careful builds and practical automation, designed to work together."
         />
-        <div className="mt-14 grid gap-5 md:mt-20 lg:grid-cols-2 lg:gap-8">
+        <div className="mt-14 grid gap-5 md:mt-20 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
           {serviceSummaries.map((s, i) => (
             <Reveal key={s.id} delay={i * 120}>
               <ServiceCard service={s} />

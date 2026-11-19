@@ -16,7 +16,7 @@
  * screenshots). Paths are root-relative; the base path is added at render.
  */
 
-export type ProjectCategory = "websites" | "ai" | "product";
+export type ProjectCategory = "ux" | "websites" | "ai";
 
 export type Engagement = "client" | "internship" | "academic" | "personal" | "concept";
 
@@ -74,9 +74,9 @@ export type Project = {
 
 export const projectCategories: { id: "all" | ProjectCategory; label: string }[] = [
   { id: "all", label: "All" },
+  { id: "ux", label: "UI/UX Design" },
   { id: "websites", label: "Websites" },
   { id: "ai", label: "AI & Automation" },
-  { id: "product", label: "Product Design" },
 ];
 
 export const projects: Project[] = [
@@ -85,7 +85,7 @@ export const projects: Project[] = [
     title: "Pittsburgh Queer History Project",
     category: "websites",
     type: "Website Redesign",
-    engagement: "academic",
+    engagement: "client",
     summary:
       "A redesign of the website for the Pittsburgh Queer History Project, an oral history and media initiative documenting LGBTQ after-hours nightlife in Pittsburgh — from information architecture and visual design through a WordPress build and a documented handover.",
     scope: ["Visual & UX redesign", "Information architecture", "WordPress build", "Handover documentation"],
@@ -98,7 +98,7 @@ export const projects: Project[] = [
     liveUrl: "https://pittsburghqueerhistory.com/",
     caseStudy: {
       overview:
-        "The Pittsburgh Queer History Project (PQHP) is an oral history and media initiative focused on LGBTQ after-hours nightlife in Pittsburgh from 1960 to 1990. Founded in 2012, it runs community programs such as Artist/Archivist Volunteer Nights and intergenerational archive screening events. The website redesign was completed as an academic project and covered the site structure, visual design, WordPress implementation and handover documentation.",
+        "The Pittsburgh Queer History Project (PQHP) is an oral history and media initiative focused on LGBTQ after-hours nightlife in Pittsburgh from 1960 to 1990. Founded in 2012, it runs community programs such as Artist/Archivist Volunteer Nights and intergenerational archive screening events. The redesign was carried out for PQHP as a real client, as part of an academic program, and covered the site structure, visual design, WordPress implementation and handover documentation.",
       challenge:
         "A volunteer-driven archive has to serve several audiences at once: people looking for upcoming events, volunteers who want to help process collections, community members with materials to donate, and researchers looking for the project's publications. The site also needed to stay maintainable by the organization itself once the project ended, without ongoing developer support.",
       approach: [
@@ -177,8 +177,8 @@ export const projects: Project[] = [
   {
     slug: "noteful",
     title: "Noteful",
-    category: "product",
-    type: "Product Design · UX Research",
+    category: "ux",
+    type: "UI/UX Design · UX Research",
     engagement: "client",
     summary:
       "A redesign of the sing-back and rhythm-tapping lessons in Noteful, a gamified music theory app — adding real-time feedback, clearer guidance and reusable lesson components.",

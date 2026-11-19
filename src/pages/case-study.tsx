@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useParams } from "react-router";
 import { Link } from "@/components/ui/link";
-import { engagementLabels, getProject, getRelatedProjects } from "@/data/projects";
+import { engagementLabels, getProject } from "@/data/projects";
 import { Seo } from "@/app/head";
 import { cn } from "@/lib/cn";
 import { assetPath } from "@/config/site";
@@ -13,7 +13,6 @@ import { Reveal } from "@/components/ui/reveal";
 import { CheckList } from "@/components/ui/check-list";
 import { ProjectImage } from "@/components/visuals/project-image";
 import { ArrowUpRight } from "lucide-react";
-import { ProjectCard } from "@/components/sections/project-card";
 import { CtaSection } from "@/components/sections/cta-section";
 
 function Block({
@@ -44,8 +43,11 @@ export default function CaseStudyPage() {
   if (!project) return <NotFoundPage />;
 
   const { caseStudy: cs } = project;
-  const related = getRelatedProjects(project.slug, 2);
-  const serviceLink = project.category === "websites" ? "/services/websites" : "/services/ai";
+  const service = {
+    ux: { href: "/services/ux-design", label: "UI/UX Design", inquiry: "ux-design" },
+    websites: { href: "/services/websites", label: "Website Solutions", inquiry: "new-website" },
+    ai: { href: "/services/ai", label: "AI & Automation", inquiry: "ai-automation" },
+  }[project.category];
   const isConcept = project.engagement === "concept";
   const measured = cs.measuredResults && cs.measuredResults.length > 0;
 
@@ -266,28 +268,13 @@ export default function CaseStudyPage() {
               </div>
             </div>
             <p className="mt-10">
-              <Link href={serviceLink} className="font-medium underline decoration-line-strong underline-offset-[6px] hover:text-accent hover:decoration-accent">
-                Learn more about {project.category === "ai" ? "AI & Automation" : "Website Solutions"}
+              <Link href={service.href} className="font-medium underline decoration-line-strong underline-offset-[6px] hover:text-accent hover:decoration-accent">
+                Learn more about {service.label}
               </Link>
             </p>
           </Block>
         </div>
       </article>
-
-      {/* 8. Related */}
-      {related.length > 0 && (
-        <section aria-labelledby="related-title" className="section-y border-t border-line bg-surface">
-          <div className="container-site">
-            <Eyebrow className="mb-4">Related projects</Eyebrow>
-            <h2 id="related-title" className="text-title font-semibold">More work to explore.</h2>
-            <div className="mt-12 grid gap-x-8 gap-y-14 md:grid-cols-2">
-              {related.map((p) => (
-                <ProjectCard key={p.slug} project={p} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* 9. CTA */}
       <CtaSection
@@ -300,7 +287,7 @@ export default function CaseStudyPage() {
         }
         cta={{
           label: "Start a project inquiry",
-          href: project.category === "websites" ? "/contact?service=new-website" : "/contact?service=ai-automation",
+          href: `/contact?service=${service.inquiry}`,
         }}
       />
     </>

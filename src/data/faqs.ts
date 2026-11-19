@@ -3,6 +3,39 @@ export type Faq = {
   answer: string;
 };
 
+export const uxFaqs: Faq[] = [
+  {
+    question: "What is the difference between UI and UX design?",
+    answer:
+      "UX (user experience) design is about how a product works — the structure, flows and decisions that help people reach their goals. UI (user interface) design is how it looks and feels on screen. Good products need both, so the studio handles them together.",
+  },
+  {
+    question: "Can you redesign an existing app or website?",
+    answer:
+      "Yes. Redesigns usually start by testing the current experience with real users to find where people struggle, so changes address actual problems rather than guesses.",
+  },
+  {
+    question: "Do you test designs with real users?",
+    answer:
+      "Wherever possible. Depending on the project, that can include think-aloud usability sessions, interviews and before-and-after comparisons of key tasks.",
+  },
+  {
+    question: "Will our developers be able to build from the designs?",
+    answer:
+      "Yes. You receive organized design files, interactive prototypes, reusable components and documentation, plus a handoff session to walk your team through them.",
+  },
+  {
+    question: "Can you also build what you design?",
+    answer:
+      "For websites, yes — design and development can be handled end to end. For apps and other software, the studio works alongside your development team.",
+  },
+  {
+    question: "How is pricing determined?",
+    answer:
+      "Every project is scoped individually. After an initial conversation you receive a written proposal outlining scope, timeline and investment.",
+  },
+];
+
 export const websiteFaqs: Faq[] = [
   {
     question: "How long does a typical website project take?",
